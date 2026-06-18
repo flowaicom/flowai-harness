@@ -1,0 +1,139 @@
+name: Wheels
+
+# Builds prebuilt binary wheels so users can `pip install flowai-harness`
+# without the Rust toolchain. Triggered by release tags (`v*`) and manually.
+#
+# Platforms: linux x86_64, macOS x86_64 + arm64. Linux aarch64 and Windows
+# are deferred (aarch64 needs cross-compiled OpenSSL; Windows is blocked on
+# reqwest's default native-tls — migrating reqwest to rustls-tls would drop
+# OpenSSL entirely and unlock both, tracked as a follow-up, out of scope for
+# the alpha freeze).
+#
+# OpenSSL is built from source via the `openssl-vendored` cargo feature on
+# flowai-harness-python, so binary wheels have no runtime libssl dependency.
+#
+# Distribution: wheels + sdist are attached to the GitHub Release for the tag.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  linux-x86_64:
+    name: linux x86_64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: oven-sh/setup-bun@v2
+      - name: Stage Studio static
+        shell: bash
+        run: |
+          set -euo pipefail
+          bun install --cwd studio --frozen-lockfile
+          python scripts/build_studio_static.py --skip-install
+      - name: Build wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          target: x86_64-unknown-linux-gnu
+          manylinux: 2_28
+          args: --release --out dist --features openssl-vendored -m py-flowai-harness/Cargo.toml
+          before-script-linux: |
+            dnf install -y perl make 2>/dev/null || apt-get update && apt-get install -y perl make 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-linux-x86_64
+          path: dist
+
+  macos-arm64:
+    name: macos arm64
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: oven-sh/setup-bun@v2
+      - name: Stage Studio static
+        shell: bash
+        run: |
+          set -euo pipefail
+          bun install --cwd studio --frozen-lockfile
+          python scripts/build_studio_static.py --skip-install
+      - name: Build wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          target: aarch64-apple-darwin
+          args: --release --out dist --features openssl-vendored -m py-flowai-harness/Cargo.toml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-macos-arm64
+          path: dist
+
+  macos-x86_64:
+    name: macos x86_64
+    runs-on: macos-15-intel
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: oven-sh/setup-bun@v2
+      - name: Stage Studio static
+        shell: bash
+        run: |
+          set -euo pipefail
+          bun install --cwd studio --frozen-lockfile
+          python scripts/build_studio_static.py --skip-install
+      - name: Build wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          target: x86_64-apple-darwin
+          args: --release --out dist --features openssl-vendored -m py-flowai-harness/Cargo.toml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-macos-x86_64
+          path: dist
+
+  sdist:
+    name: sdist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build sdist
+        uses: PyO3/maturin-action@v1
+        with:
+          command: sdist
+          args: --out dist -m py-flowai-harness/Cargo.toml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-sdist
+          path: dist
+
+  github-release:
+    name: Attach to GitHub Release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [linux-x86_64, macos-arm64, macos-x86_64, sdist]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          merge-multiple: true
+          path: dist
+      - name: Upload wheels + sdist
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*

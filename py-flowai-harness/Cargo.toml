@@ -12,6 +12,11 @@ crate-type = ["cdylib"]
 
 [features]
 extension-module = ["pyo3/extension-module"]
+# Build OpenSSL from source and statically link it. Used by the wheel CI
+# (.github/workflows/wheels.yml) so binary wheels have no runtime libssl
+# dependency and cross-compiles (e.g. linux aarch64) don't need a target
+# OpenSSL installed. Off by default; the source install path is unchanged.
+openssl-vendored = ["openssl-sys/vendored"]
 
 [dependencies]
 agent-fw-agent = { workspace = true }
@@ -26,6 +31,8 @@ agent-fw-plan = { workspace = true }
 agent-fw-reference = { workspace = true }
 agent-fw-tool = { workspace = true }
 async-trait = { workspace = true }
+# Optional; only referenced by the `openssl-vendored` feature above.
+openssl-sys = { version = "0.9", optional = true }
 flowai-harness-cli = { workspace = true }
 flowai-runtime = { workspace = true }
 futures = { workspace = true }
