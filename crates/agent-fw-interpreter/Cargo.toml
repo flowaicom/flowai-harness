@@ -1,0 +1,74 @@
+[package]
+name = "agent-fw-interpreter"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Stock implementations of algebra traits"
+
+[dependencies]
+agent-fw-core = { workspace = true }
+agent-fw-algebra = { workspace = true }
+agent-fw-catalog = { workspace = true }
+agent-fw-search = { workspace = true }
+async-trait = { workspace = true }
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+dashmap = { workspace = true }
+tracing = { workspace = true }
+sha2 = { workspace = true }
+hex = { workspace = true }
+
+# SQLite KV store
+rusqlite = { workspace = true }
+
+# Optional: PostgreSQL via sqlx (behind feature flag)
+sqlx = { workspace = true, optional = true }
+rust_decimal = { workspace = true, optional = true }
+chrono = { workspace = true, optional = true }
+
+# Optional: HTTP-based interpreters (Anthropic, OpenRouter, NetworkSubAgent)
+reqwest = { workspace = true, optional = true }
+agent-fw-agent = { workspace = true, optional = true, features = ["rig-hooks", "rig-history"] }
+futures = { workspace = true, optional = true }
+rig = { package = "rig-core", path = "../../third_party/rig/rig/rig-core", optional = true }
+rig-bedrock = { package = "rig-bedrock", path = "../../third_party/rig/rig-integrations/rig-bedrock", optional = true }
+aws-config = { workspace = true, optional = true }
+aws-sdk-bedrockruntime = { workspace = true, optional = true }
+
+# Optional: Redis KV store
+redis = { workspace = true, optional = true }
+
+# Optional: AES-GCM encryption
+aes-gcm = { workspace = true, optional = true }
+rand = { workspace = true, optional = true }
+
+# Optional: LanceDB embedded vector store
+lancedb = { workspace = true, optional = true }
+arrow-array = { workspace = true, optional = true }
+arrow-schema = { workspace = true, optional = true }
+
+[features]
+default = []
+postgres = ["dep:sqlx", "dep:rust_decimal", "dep:chrono"]
+http-clients = ["dep:reqwest", "dep:agent-fw-agent", "dep:futures"]
+rig-chat = [
+    "dep:agent-fw-agent",
+    "dep:futures",
+    "dep:rig",
+    "dep:rig-bedrock",
+    "dep:aws-config",
+    "dep:aws-sdk-bedrockruntime",
+]
+redis = ["dep:redis"]
+encryption = ["dep:aes-gcm", "dep:rand"]
+lancedb = ["dep:lancedb", "dep:arrow-array", "dep:arrow-schema", "dep:futures"]
+
+[dev-dependencies]
+agent-fw-test = { workspace = true }
+hegel = { workspace = true }
+tokio-test = { workspace = true }
+futures = { workspace = true }
+tempfile = { workspace = true }

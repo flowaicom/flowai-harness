@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc da9a13cb9cba9a4833c56cbfbeb48b3ed99be95e8515a67f2cb8960cb3c19bc4 # shrinks to tables = [("a.a", [ColumnSignature { name: "n", data_type: "integer", is_nullable: false, is_primary_key: false }, ColumnSignature { name: "n", data_type: "integer", is_nullable: true, is_primary_key: false }])]

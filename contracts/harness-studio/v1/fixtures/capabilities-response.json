@@ -1,0 +1,27 @@
+{
+  "workspaceKey": "default",
+  "capabilities": [
+    {
+      "id": "runtime.inspect",
+      "enabled": true,
+      "scope": "local"
+    },
+    {
+      "id": "chat.stream",
+      "enabled": true,
+      "scope": "local"
+    },
+    {
+      "id": "data.profile",
+      "enabled": true,
+      "scope": "local"
+    },
+    {
+      "id": "enterprise.rbac",
+      "enabled": false,
+      "scope": "enterprise",
+      "reason": "Enterprise control plane is not configured.",
+      "requirements": ["enterprise.auth"]
+    }
+  ]
+}

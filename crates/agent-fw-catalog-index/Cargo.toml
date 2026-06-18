@@ -1,0 +1,24 @@
+[package]
+name = "agent-fw-catalog-index"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Tantivy-backed catalog retrieval index"
+
+[dependencies]
+agent-fw-catalog = { workspace = true }
+agent-fw-core = { workspace = true }
+async-trait = { workspace = true }
+hex = { workspace = true }
+serde = { workspace = true }
+sha2 = { workspace = true }
+tantivy = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+
+[dev-dependencies]
+hegel = { workspace = true }
+serde_json = { workspace = true }
+tempfile = { workspace = true }
+tokio-test = { workspace = true }

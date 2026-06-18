@@ -1,0 +1,45 @@
+[package]
+name = "agent-fw-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "CLI for agent-fw framework"
+
+[[bin]]
+name = "agent-fw"
+path = "src/main.rs"
+
+[[bin]]
+name = "catalog-export"
+path = "src/bin/catalog_export.rs"
+
+[dependencies]
+agent-fw-algebra = { workspace = true }
+agent-fw-catalog = { workspace = true }
+agent-fw-ingest = { workspace = true }
+agent-fw-interpreter = { workspace = true, features = ["postgres", "http-clients"] }
+async-trait = { workspace = true }
+clap = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }
+
+[dev-dependencies]
+agent-fw-core = { workspace = true }
+agent-fw-algebra = { workspace = true }
+agent-fw-plan = { workspace = true }
+agent-fw-resolve = { workspace = true }
+agent-fw-interpreter = { workspace = true }
+agent-fw-workspace = { workspace = true }
+agent-fw-catalog = { workspace = true }
+async-trait = { workspace = true }
+axum = { workspace = true }
+chrono = { workspace = true }
+dashmap = { workspace = true }
+reqwest = { workspace = true }
+rusqlite = { workspace = true }
+tempfile = { workspace = true }
+uuid = { workspace = true }

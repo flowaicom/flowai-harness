@@ -1,0 +1,307 @@
+{
+  "schemaVersion": 1,
+  "workspace": {
+    "id": "customer-a",
+    "displayName": "Customer A",
+    "databaseType": "external",
+    "createdAt": "2026-04-10T00:00:00Z",
+    "updatedAt": "2026-04-10T00:00:00Z",
+    "databases": [
+      {
+        "id": "customer-a:target",
+        "workspaceId": "customer-a",
+        "role": "target",
+        "displayName": "Customer A - Target",
+        "databaseUrl": "postgresql://example.invalid/customer-a_target",
+        "createdAt": "2026-04-10T00:00:00Z"
+      },
+      {
+        "id": "customer-a:catalog",
+        "workspaceId": "customer-a",
+        "role": "catalog",
+        "displayName": "Customer A - Catalog",
+        "databaseUrl": "postgresql://example.invalid/customer-a_catalog",
+        "createdAt": "2026-04-10T00:00:00Z"
+      },
+      {
+        "id": "customer-a:embeddings",
+        "workspaceId": "customer-a",
+        "role": "embeddings",
+        "displayName": "Customer A - Embeddings",
+        "databaseUrl": "postgresql://example.invalid/customer-a_embeddings",
+        "createdAt": "2026-04-10T00:00:00Z"
+      },
+      {
+        "id": "customer-a:workspace",
+        "workspaceId": "customer-a",
+        "role": "workspace",
+        "displayName": "Customer A - Workspace",
+        "databaseUrl": "postgresql://example.invalid/customer-a_workspace",
+        "createdAt": "2026-04-10T00:00:00Z"
+      }
+    ],
+    "bundle": {
+      "requiredRoles": ["target", "catalog", "embeddings", "workspace"],
+      "configuredRoles": ["target", "catalog", "embeddings", "workspace"],
+      "missingRoles": [],
+      "status": "complete",
+      "complete": true
+    }
+  },
+  "workspaces": [
+    {
+      "id": "customer-a",
+      "displayName": "Customer A",
+      "databaseType": "external",
+      "createdAt": "2026-04-10T00:00:00Z",
+      "updatedAt": "2026-04-10T00:00:00Z",
+      "databases": [
+        {
+          "id": "customer-a:target",
+          "workspaceId": "customer-a",
+          "role": "target",
+          "displayName": "Customer A - Target",
+          "databaseUrl": "postgresql://example.invalid/customer-a_target",
+          "createdAt": "2026-04-10T00:00:00Z"
+        },
+        {
+          "id": "customer-a:catalog",
+          "workspaceId": "customer-a",
+          "role": "catalog",
+          "displayName": "Customer A - Catalog",
+          "databaseUrl": "postgresql://example.invalid/customer-a_catalog",
+          "createdAt": "2026-04-10T00:00:00Z"
+        },
+        {
+          "id": "customer-a:embeddings",
+          "workspaceId": "customer-a",
+          "role": "embeddings",
+          "displayName": "Customer A - Embeddings",
+          "databaseUrl": "postgresql://example.invalid/customer-a_embeddings",
+          "createdAt": "2026-04-10T00:00:00Z"
+        },
+        {
+          "id": "customer-a:workspace",
+          "workspaceId": "customer-a",
+          "role": "workspace",
+          "displayName": "Customer A - Workspace",
+          "databaseUrl": "postgresql://example.invalid/customer-a_workspace",
+          "createdAt": "2026-04-10T00:00:00Z"
+        }
+      ],
+      "bundle": {
+        "requiredRoles": ["target", "catalog", "embeddings", "workspace"],
+        "configuredRoles": ["target", "catalog", "embeddings", "workspace"],
+        "missingRoles": [],
+        "status": "complete",
+        "complete": true
+      }
+    }
+  ],
+  "importStage": {
+    "stage": "completed",
+    "summary": {
+      "sourceRowCount": 4,
+      "tableRowCounts": {
+        "documents": 1,
+        "sales": 3
+      },
+      "documentsIngested": 1,
+      "knowledgeItemsExtracted": 2,
+      "durationMs": 2500
+    }
+  },
+  "importEvents": [
+    {
+      "type": "started",
+      "jobId": "import-job-001"
+    },
+    {
+      "type": "stageProgress",
+      "stage": {
+        "stage": "uploading"
+      }
+    },
+    {
+      "type": "stageProgress",
+      "stage": {
+        "stage": "parsing"
+      }
+    },
+    {
+      "type": "stageProgress",
+      "stage": {
+        "stage": "creatingSchema"
+      }
+    },
+    {
+      "type": "schemaCreated",
+      "tables": ["sales", "documents"]
+    },
+    {
+      "type": "stageProgress",
+      "stage": {
+        "stage": "loadingTables",
+        "tablesCompleted": 1,
+        "totalTables": 2,
+        "currentBatchRows": 3,
+        "totalBatchRows": 4
+      }
+    },
+    {
+      "type": "batchProgress",
+      "tableName": "sales",
+      "rowsLoaded": 3,
+      "totalRows": 3
+    },
+    {
+      "type": "tableLoaded",
+      "tableName": "sales",
+      "rowCount": 3
+    },
+    {
+      "type": "stageProgress",
+      "stage": {
+        "stage": "validating"
+      }
+    },
+    {
+      "type": "validationPassed",
+      "checks": [
+        {
+          "name": "sales_has_rows",
+          "passed": true,
+          "message": "sales contains 3 rows"
+        }
+      ]
+    },
+    {
+      "type": "knowledgeExtractionStarted",
+      "documents": 1
+    },
+    {
+      "type": "documentExtracted",
+      "documentId": "doc-001",
+      "documentName": "customer-policy.md",
+      "knowledgeItemsExtracted": 2
+    },
+    {
+      "type": "stageProgress",
+      "stage": {
+        "stage": "profiling"
+      }
+    },
+    {
+      "type": "profilingEvent",
+      "inner": {
+        "type": "started",
+        "jobId": "profile-job-001"
+      }
+    },
+    {
+      "type": "profilingEvent",
+      "inner": {
+        "type": "progress",
+        "status": {
+          "status": "discovering",
+          "tablesFound": 2
+        }
+      }
+    },
+    {
+      "type": "profilingEvent",
+      "inner": {
+        "type": "progress",
+        "status": {
+          "status": "profiling",
+          "tablesFound": 2,
+          "columnsProfiled": 7,
+          "totalColumns": 7
+        }
+      }
+    },
+    {
+      "type": "profilingEvent",
+      "inner": {
+        "type": "tableProfiled",
+        "tableName": "sales",
+        "columns": 5,
+        "durationMs": 800
+      }
+    },
+    {
+      "type": "profilingEvent",
+      "inner": {
+        "type": "tableEnriched",
+        "tableName": "sales",
+        "source": "cached"
+      }
+    },
+    {
+      "type": "profilingEvent",
+      "inner": {
+        "type": "tableCompleted",
+        "tableName": "sales",
+        "summary": {
+          "tablesDiscovered": 2,
+          "columnsProfiled": 7,
+          "enumsExtracted": 3,
+          "relationshipsFound": 1,
+          "catalogItemsIndexed": 12,
+          "durationMs": 1234,
+          "enrichmentDegraded": false,
+          "enrichmentCacheHits": 1,
+          "enrichmentFallbacks": 0,
+          "enrichmentFresh": 1
+        }
+      }
+    },
+    {
+      "type": "profilingEvent",
+      "inner": {
+        "type": "completed",
+        "summary": {
+          "tablesDiscovered": 2,
+          "columnsProfiled": 7,
+          "enumsExtracted": 3,
+          "relationshipsFound": 1,
+          "catalogItemsIndexed": 12,
+          "durationMs": 1234,
+          "enrichmentDegraded": false,
+          "enrichmentCacheHits": 1,
+          "enrichmentFallbacks": 0,
+          "enrichmentFresh": 1
+        }
+      }
+    },
+    {
+      "type": "stageProgress",
+      "stage": {
+        "stage": "completed",
+        "summary": {
+          "sourceRowCount": 4,
+          "tableRowCounts": {
+            "documents": 1,
+            "sales": 3
+          },
+          "documentsIngested": 1,
+          "knowledgeItemsExtracted": 2,
+          "durationMs": 2500
+        }
+      }
+    },
+    {
+      "type": "completed",
+      "summary": {
+        "sourceRowCount": 4,
+        "tableRowCounts": {
+          "documents": 1,
+          "sales": 3
+        },
+        "documentsIngested": 1,
+        "knowledgeItemsExtracted": 2,
+        "durationMs": 2500
+      }
+    }
+  ]
+}

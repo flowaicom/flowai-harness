@@ -1,0 +1,26 @@
+[package]
+name = "agent-fw-resolve"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Content-addressed entity resolution with KV caching"
+
+[dependencies]
+agent-fw-core = { workspace = true }
+agent-fw-algebra = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+thiserror = { workspace = true }
+sha2 = { workspace = true }
+hex = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+tokio = { workspace = true }
+
+[dev-dependencies]
+agent-fw-test = { workspace = true }
+hegel = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+dashmap = { workspace = true }

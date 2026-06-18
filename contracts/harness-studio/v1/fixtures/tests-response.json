@@ -1,0 +1,11 @@
+{
+  "workspaceKey": "default",
+  "tests": [
+    {
+      "testId": "test_01",
+      "name": "Draft basic pricing scenario",
+      "status": "ready",
+      "tags": ["smoke", "pricing"]
+    }
+  ]
+}

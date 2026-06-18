@@ -1,0 +1,10 @@
+{
+  "studioApiVersion": "harness-studio/v1",
+  "supportedVersions": ["harness-studio/v1"],
+  "status": "ready",
+  "implementation": {
+    "name": "py-flowai-harness",
+    "version": "0.1.0",
+    "mode": "local"
+  }
+}

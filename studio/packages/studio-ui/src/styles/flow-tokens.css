@@ -1,0 +1,177 @@
+:root {
+  --font-sans: "Euclid Circular B", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "DM Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --brand-gray-50: #f8fafc;
+  --brand-gray-100: #f3f4f6;
+  --brand-gray-200: #e5e7eb;
+  --brand-gray-300: #d3d6db;
+  --brand-gray-400: #a7acb4;
+  --brand-gray-500: #7c838d;
+  --brand-gray-600: #5e6570;
+  --brand-gray-700: #424852;
+  --brand-gray-800: #2d3138;
+  --brand-gray-900: #1e2226;
+  --brand-gray-950: #14171a;
+
+  --background: #ffffff;
+  --foreground: var(--brand-gray-950);
+  --card: #ffffff;
+  --card-foreground: var(--brand-gray-950);
+  --popover: #ffffff;
+  --popover-foreground: var(--brand-gray-950);
+  --primary: var(--brand-gray-950);
+  --primary-foreground: #ffffff;
+  --secondary: var(--brand-gray-100);
+  --secondary-foreground: var(--brand-gray-950);
+  --muted: var(--brand-gray-100);
+  --muted-foreground: var(--brand-gray-500);
+  --accent: rgb(15 23 42 / 0.055);
+  --accent-foreground: var(--brand-gray-950);
+  --destructive: #dc2626;
+  --border: rgb(15 23 42 / 0.08);
+  --input: rgb(15 23 42 / 0.12);
+  --ring: rgb(30 34 38 / 0.18);
+
+  --chrome-base: var(--brand-gray-50);
+  --chrome-mid: #ffffff;
+  --chrome-card: #ffffff;
+  --chrome-raised: #ffffff;
+  --chrome-sidebar: var(--chrome-base);
+
+  --fg-1: var(--brand-gray-950);
+  --fg-2: var(--brand-gray-800);
+  --fg-3: var(--brand-gray-700);
+  --fg-4: var(--brand-gray-600);
+  --fg-5: var(--brand-gray-500);
+
+  --layer-02: rgb(15 23 42 / 0.018);
+  --layer-03: rgb(15 23 42 / 0.025);
+  --layer-04: rgb(15 23 42 / 0.035);
+  --layer-05: rgb(15 23 42 / 0.045);
+  --layer-06: rgb(15 23 42 / 0.055);
+  --layer-08: rgb(15 23 42 / 0.08);
+  --layer-10: rgb(15 23 42 / 0.10);
+  --layer-12: rgb(15 23 42 / 0.12);
+  --layer-14: rgb(15 23 42 / 0.14);
+
+  --accent-green-bg: rgb(16 185 129 / 0.10);
+  --accent-green-border: rgb(16 185 129 / 0.22);
+  --accent-green-fg: #047857;
+  --accent-blue-bg: rgb(14 165 233 / 0.10);
+  --accent-blue-border: rgb(14 165 233 / 0.22);
+  --accent-blue-fg: #0369a1;
+  --accent-violet-bg: rgb(139 92 246 / 0.10);
+  --accent-violet-border: rgb(139 92 246 / 0.22);
+  --accent-violet-fg: #6d28d9;
+  --accent-amber-bg: rgb(245 158 11 / 0.12);
+  --accent-amber-border: rgb(245 158 11 / 0.26);
+  --accent-amber-fg: #b45309;
+  --accent-orange-bg: rgb(249 115 22 / 0.10);
+  --accent-orange-border: rgb(249 115 22 / 0.24);
+  --accent-orange-fg: #c2410c;
+  --destructive-bg: rgb(239 68 68 / 0.10);
+  --destructive-border: rgb(239 68 68 / 0.24);
+  --destructive-fg: #b91c1c;
+
+  --accent-emerald: oklch(0.72 0.17 162 / 12%);
+  --accent-blue: oklch(0.62 0.19 250 / 12%);
+  --accent-amber: oklch(0.75 0.16 75 / 12%);
+  --accent-red: oklch(0.55 0.20 25 / 12%);
+  --accent-purple: oklch(0.60 0.19 300 / 12%);
+  --accent-orange: oklch(0.70 0.16 50 / 12%);
+
+  --dot-emerald: oklch(0.72 0.17 162);
+  --dot-blue: oklch(0.62 0.19 250);
+  --dot-amber: oklch(0.75 0.16 75);
+  --dot-red: oklch(0.55 0.20 25);
+  --dot-purple: oklch(0.60 0.19 300);
+  --dot-orange: oklch(0.70 0.16 50);
+
+  --keyline: oklch(0 0 0 / 8%);
+  --shadow-chip: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-panel: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.dark,
+.slate {
+  color-scheme: dark;
+
+  --background: var(--brand-gray-950);
+  --foreground: var(--brand-gray-100);
+  --card: var(--brand-gray-900);
+  --card-foreground: var(--brand-gray-100);
+  --popover: var(--brand-gray-900);
+  --popover-foreground: var(--brand-gray-100);
+  --primary: var(--brand-gray-100);
+  --primary-foreground: #0b0d10;
+  --secondary: var(--brand-gray-800);
+  --secondary-foreground: var(--brand-gray-100);
+  --muted: var(--brand-gray-800);
+  --muted-foreground: var(--brand-gray-500);
+  --accent: rgb(255 255 255 / 0.06);
+  --accent-foreground: var(--brand-gray-100);
+  --destructive: #f87171;
+  --border: rgb(255 255 255 / 0.08);
+  --input: rgb(255 255 255 / 0.10);
+  --ring: rgb(243 244 246 / 0.34);
+
+  --chrome-base: var(--brand-gray-950);
+  --chrome-mid: var(--brand-gray-900);
+  --chrome-card: var(--brand-gray-900);
+  --chrome-raised: var(--brand-gray-950);
+  --chrome-sidebar: var(--chrome-base);
+
+  --fg-1: var(--brand-gray-100);
+  --fg-2: var(--brand-gray-200);
+  --fg-3: var(--brand-gray-300);
+  --fg-4: var(--brand-gray-400);
+  --fg-5: var(--brand-gray-500);
+
+  --layer-02: rgb(255 255 255 / 0.02);
+  --layer-03: rgb(255 255 255 / 0.03);
+  --layer-04: rgb(255 255 255 / 0.04);
+  --layer-05: rgb(255 255 255 / 0.05);
+  --layer-06: rgb(255 255 255 / 0.06);
+  --layer-08: rgb(255 255 255 / 0.08);
+  --layer-10: rgb(255 255 255 / 0.10);
+  --layer-12: rgb(255 255 255 / 0.12);
+  --layer-14: rgb(255 255 255 / 0.14);
+
+  --accent-green-bg: rgb(16 185 129 / 0.14);
+  --accent-green-border: rgb(110 231 183 / 0.20);
+  --accent-green-fg: #a7f3d0;
+  --accent-blue-bg: rgb(14 165 233 / 0.14);
+  --accent-blue-border: rgb(125 211 252 / 0.20);
+  --accent-blue-fg: #bae6fd;
+  --accent-violet-bg: rgb(139 92 246 / 0.14);
+  --accent-violet-border: rgb(196 181 253 / 0.20);
+  --accent-violet-fg: #ddd6fe;
+  --accent-amber-bg: rgb(245 158 11 / 0.14);
+  --accent-amber-border: rgb(252 211 77 / 0.20);
+  --accent-amber-fg: #fde68a;
+  --accent-orange-bg: rgb(249 115 22 / 0.16);
+  --accent-orange-border: rgb(253 186 116 / 0.22);
+  --accent-orange-fg: #fed7aa;
+  --destructive-bg: rgb(239 68 68 / 0.16);
+  --destructive-border: rgb(252 165 165 / 0.20);
+  --destructive-fg: #fecaca;
+
+  --accent-emerald: oklch(0.72 0.17 162 / 15%);
+  --accent-blue: oklch(0.62 0.19 250 / 15%);
+  --accent-amber: oklch(0.75 0.16 75 / 15%);
+  --accent-red: oklch(0.55 0.20 25 / 15%);
+  --accent-purple: oklch(0.60 0.19 300 / 15%);
+  --accent-orange: oklch(0.70 0.16 50 / 15%);
+
+  --dot-emerald: oklch(0.72 0.17 162);
+  --dot-blue: oklch(0.62 0.19 250);
+  --dot-amber: oklch(0.75 0.16 75);
+  --dot-red: oklch(0.55 0.20 25);
+  --dot-purple: oklch(0.60 0.19 300);
+  --dot-orange: oklch(0.70 0.16 50);
+
+  --keyline: oklch(1 0 0 / 8%);
+  --shadow-chip: 0 1px 2px rgba(0, 0, 0, 0.16);
+  --shadow-panel: 0 1px 2px rgba(0, 0, 0, 0.14);
+}

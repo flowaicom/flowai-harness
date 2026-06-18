@@ -1,0 +1,27 @@
+{
+  "workspaceKey": "default",
+  "agents": [
+    {
+      "agentId": "scenario_coordinator",
+      "name": "scenario_coordinator",
+      "role": "coordinator",
+      "model": "claude-sonnet-4-6",
+      "stateful": true,
+      "entrypoint": true,
+      "toolkits": ["agents", "plans"],
+      "tools": ["search_products"],
+      "routes": ["planner", "insights"]
+    },
+    {
+      "agentId": "insights",
+      "name": "insights",
+      "role": "specialist",
+      "model": "claude-sonnet-4-6",
+      "stateful": false,
+      "entrypoint": false,
+      "toolkits": ["semantic-search"],
+      "tools": [],
+      "routes": []
+    }
+  ]
+}

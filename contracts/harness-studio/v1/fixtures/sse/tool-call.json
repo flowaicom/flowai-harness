@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "harness-studio/v1",
+  "workspaceKey": "default",
+  "runId": "run_01",
+  "threadId": "thread_01",
+  "agentId": "scenario_coordinator",
+  "seq": 2,
+  "kind": "tool.call.started",
+  "payload": {
+    "toolCallId": "tool_call_01",
+    "toolName": "search_products",
+    "arguments": {
+      "query": "sample products",
+      "limit": 5
+    }
+  }
+}

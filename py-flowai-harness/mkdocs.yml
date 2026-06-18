@@ -1,0 +1,136 @@
+site_name: flowai-harness
+site_description: Opinionated Python harness for the Flow AI runtime.
+site_url: https://flowaicom.github.io/flowai-harness/
+repo_url: https://github.com/flowaicom/flowai-harness
+repo_name: flowaicom/flowai-harness
+edit_uri: edit/main/py-flowai-harness/docs/
+
+theme:
+  name: material
+  logo: assets/logo.svg
+  favicon: assets/favicon.ico
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.instant
+    - navigation.tracking
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  font: false
+
+extra_css:
+  - stylesheets/extra.css
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: ["."]
+          options:
+            show_source: false
+            show_root_heading: true
+            show_root_full_path: false
+            show_signature_annotations: true
+            separate_signature: true
+            merge_init_into_class: true
+            docstring_style: google
+            members_order: source
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Quickstart: quickstart.md
+  - Tutorials:
+      - Coordinator Planner Executor: tutorials/coordinator-planner-executor.md
+      - Inventory Scenario: tutorials/inventory-scenario.md
+      - Your First Eval: tutorials/first-eval.md
+  - Concepts:
+      - Overview: concepts/index.md
+      - Catalog: concepts/catalog.md
+      - Multi-agent architectures: concepts/execution-model.md
+      - Tenants: concepts/tenant.md
+      - Agents: concepts/agents.md
+      - Plans: concepts/plans.md
+      - Tools: concepts/tools.md
+      - Action dispatcher: concepts/action-dispatcher.md
+      - References & glimpses: concepts/references.md
+      - Approvals: concepts/approvals.md
+      - Runtime: concepts/runtime.md
+      - Prompts: concepts/prompts.md
+  - Guides:
+      - Overview: guides/index.md
+      - Studio: guides/studio.md
+      - Streaming events: guides/streaming.md
+      - Configure a data environment: guides/data-environment.md
+      - Profile and export a catalog: guides/catalog-profiling.md
+      - Attach knowledge and documents: guides/knowledge.md
+      - Work with references and glimpses: guides/references-and-glimpses.md
+      - Require approvals: guides/approvals.md
+      - Execute approved actions: guides/action-dispatcher.md
+      - Expose tools over MCP: guides/mcp.md
+      - Test agents without provider calls: guides/testing.md
+      - Write evals: guides/evals.md
+      - Judge final responses: guides/judge-evals.md
+      - Debug system prompts: guides/system-prompts.md
+  - Reference:
+      - Overview: reference/index.md
+      - Runtime: reference/runtime.md
+      - Studio: reference/studio.md
+      - Evals: reference/evals.md
+      - MCP: reference/mcp.md
+      - Agents: reference/agents.md
+      - Plans: reference/plans.md
+      - References: reference/references.md
+      - Tools: reference/tools.md
+      - Prompts: reference/prompts.md
+      - Tenant: reference/tenant.md
+      - Unions: reference/unions.md
+      - Glimpse: reference/glimpse.md
+      - Runtime events: reference/runtime-events.md
+      - Action dispatcher: reference/action-dispatcher.md
+      - Schema and utilities: reference/schema-utilities.md
+  - Changelog: changelog.md

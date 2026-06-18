@@ -1,0 +1,32 @@
+[package]
+name = "agent-fw-plan"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Generic plan state machine, sweep axis system, and card algebra"
+
+[dependencies]
+agent-fw-core = { workspace = true }
+agent-fw-algebra = { workspace = true }
+agent-fw-tool = { workspace = true, optional = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+thiserror = { workspace = true }
+rust_decimal = { workspace = true }
+async-trait = { workspace = true }
+tokio = { workspace = true }
+futures = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+
+[features]
+default = []
+tool-presentation = ["dep:agent-fw-tool"]
+
+[dev-dependencies]
+agent-fw-test = { workspace = true }
+hegel = { workspace = true }
+rust_decimal_macros = "1"
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

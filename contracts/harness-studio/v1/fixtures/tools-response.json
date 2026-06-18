@@ -1,0 +1,43 @@
+{
+  "workspaceKey": "default",
+  "tools": [
+    {
+      "toolId": "search_products",
+      "name": "search_products",
+      "description": "Search products by query.",
+      "origin": "host",
+      "approval": "never",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string" },
+          "limit": { "type": "integer" }
+        },
+        "required": ["query"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "products": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    {
+      "toolId": "semantic-search.search",
+      "name": "search",
+      "description": "Search indexed knowledge for the active workspace.",
+      "origin": "toolkit",
+      "toolkit": "semantic-search",
+      "approval": "never",
+      "inputSchema": {
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object"
+      }
+    }
+  ]
+}

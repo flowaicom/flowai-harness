@@ -1,0 +1,34 @@
+[package]
+name = "agent-fw-workspace"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Workspace management: types, store algebra, KV interpreter"
+
+[features]
+default = []
+postgres = ["dep:sqlx"]
+
+[dependencies]
+agent-fw-core = { workspace = true }
+agent-fw-algebra = { workspace = true }
+agent-fw-catalog = { workspace = true }
+agent-fw-eval = { workspace = true }
+agent-fw-tool = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+thiserror = { workspace = true }
+async-trait = { workspace = true }
+uuid = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+dashmap = { workspace = true }
+futures = { workspace = true }
+sqlx = { workspace = true, optional = true }
+
+[dev-dependencies]
+hegel = { workspace = true }
+tokio-test = { workspace = true }
+agent-fw-interpreter = { workspace = true }

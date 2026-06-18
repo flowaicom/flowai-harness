@@ -1,0 +1,37 @@
+[package]
+name = "agent-fw-catalog-tools"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Seven-tool catalog surface for agent data discovery"
+
+[dependencies]
+agent-fw-core.workspace = true
+agent-fw-algebra.workspace = true
+agent-fw-agent.workspace = true
+agent-fw-catalog.workspace = true
+agent-fw-eval.workspace = true
+agent-fw-tool.workspace = true
+agent-fw-tool-macro.workspace = true
+agent-fw-workspace.workspace = true
+
+async-trait.workspace = true
+futures.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sqlparser.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+chrono.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+agent-fw-interpreter = { workspace = true, features = ["postgres"] }
+axum.workspace = true
+hegel = { workspace = true }
+rusqlite.workspace = true
+sqlx.workspace = true
+tempfile.workspace = true
+tokio-test.workspace = true

@@ -1,0 +1,33 @@
+[package]
+name = "agent-fw-agent"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Agent orchestration: programs-as-values, multi-agent coordination"
+
+[dependencies]
+agent-fw-core = { workspace = true }
+agent-fw-algebra = { workspace = true }
+agent-fw-tool = { workspace = true }
+agent-fw-workspace = { workspace = true, optional = true }
+async-trait = { workspace = true }
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+futures = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+toml = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true, optional = true }
+rig = { package = "rig-core", path = "../../third_party/rig/rig/rig-core", optional = true }
+
+[features]
+default = []
+rig-hooks = ["dep:rig", "dep:chrono"]
+rig-history = ["rig-hooks", "dep:agent-fw-workspace"]
+
+[dev-dependencies]
+tokio-test = { workspace = true }

@@ -1,0 +1,27 @@
+[package]
+name = "agent-fw-algebra"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Capability traits with algebraic laws"
+
+[dependencies]
+agent-fw-core = { workspace = true }
+async-trait = { workspace = true }
+tokio = { workspace = true }
+tokio-util = { workspace = true }
+futures = { workspace = true }
+pin-project = { workspace = true }
+rusqlite = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+rust_decimal = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+sqlparser = { workspace = true }
+
+[dev-dependencies]
+hegel = { workspace = true }
+tokio-test = { workspace = true }

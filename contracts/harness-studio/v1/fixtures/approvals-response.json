@@ -1,0 +1,18 @@
+{
+  "workspaceKey": "default",
+  "approvals": [
+    {
+      "approvalId": "approval_01",
+      "status": "pending",
+      "kind": "tool",
+      "agentId": "scenario_coordinator",
+      "runId": "run_01",
+      "title": "Run warehouse mutation",
+      "createdAt": "2026-05-21T00:00:00Z",
+      "payload": {
+        "toolName": "apply_price_change",
+        "risk": "side_effecting"
+      }
+    }
+  ]
+}

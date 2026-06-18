@@ -1,0 +1,110 @@
+# Rust
+/target/
+examples/*/target/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+.eggs/
+*.whl
+
+# PyO3 / maturin build artifacts
+python/rust_agent_fw/*.so
+python/rust_agent_fw/*.dylib
+python/rust_agent_fw/*.pyd
+
+# Virtual environments
+.venv/
+venv/
+
+# Node / Studio frontend
+node_modules/
+studio/build/
+studio/.react-router/
+
+# Docs site (Next.js)
+docs/site/.next/
+docs/site/out/
+docs/site/next-env.d.ts
+docs/site/tsconfig.tsbuildinfo
+
+# Docs site (MkDocs — flowai-harness)
+py-flowai-harness/site/
+
+# Generated Studio static artifact staged before building py-flowai-harness wheels
+py-flowai-harness/flowai_harness/studio/static/
+
+# Private docs branding assets — inject these from private CI/deploy storage.
+docs/site/public/brand/brand.css
+docs/site/public/brand/fonts/
+py-flowai-harness/docs/stylesheets/brand-fonts.css
+py-flowai-harness/docs/stylesheets/fonts/
+
+# SQLite databases (generated at runtime)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Keep compressed seed dumps for bootstrap
+!**/*.db.zst
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+!**/.env.example
+.direnv/
+
+# Hegel PBT cache
+.hegel/
+
+# Agent framework working data
+.agent-fw/
+.agents/
+.codex
+.codex/
+
+# Local FlowAI/e2e artifacts
+.flowai/
+/data-environment.json
+py-flowai-harness/.data/
+
+# Generated agent outputs and traces
+python-to-rust-skill-output/
+*-execution-trace.md
+
+# Generated standalone docs/diagrams
+docs/*.html
+docs/framework/*.html
+
+.claude
+.claude-plugin/
+plans/
+Release roadmap and licensing *.md
+
+target
+**/target
+*/target
+*.parquet
+
+/docs-site
+
+/data-agent-example
+
+.anthropic_key
+
+/data-agent

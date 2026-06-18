@@ -1,0 +1,86 @@
+{
+  "name": "@studio/core",
+  "version": "1.0.0-alpha.1",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "dependencies": {
+    "zod": "^4.3.6"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./runtime": {
+      "types": "./dist/runtime/index.d.ts",
+      "import": "./dist/runtime/index.js"
+    },
+    "./domain/async-phase": {
+      "types": "./dist/domain/async-phase.d.ts",
+      "import": "./dist/domain/async-phase.js"
+    },
+    "./domain/command-card": {
+      "types": "./dist/domain/command-card.d.ts",
+      "import": "./dist/domain/command-card.js"
+    },
+    "./domain/errors": {
+      "types": "./dist/domain/errors.d.ts",
+      "import": "./dist/domain/errors.js"
+    },
+    "./domain/message": {
+      "types": "./dist/domain/message.d.ts",
+      "import": "./dist/domain/message.js"
+    },
+    "./domain/result": {
+      "types": "./dist/domain/result.d.ts",
+      "import": "./dist/domain/result.js"
+    },
+    "./domain/scope": {
+      "types": "./dist/domain/scope.d.ts",
+      "import": "./dist/domain/scope.js"
+    },
+    "./domain/stream-part": {
+      "types": "./dist/domain/stream-part.d.ts",
+      "import": "./dist/domain/stream-part.js"
+    },
+    "./domain/user-action": {
+      "types": "./dist/domain/user-action.d.ts",
+      "import": "./dist/domain/user-action.js"
+    },
+    "./stream": {
+      "types": "./dist/stream/index.d.ts",
+      "import": "./dist/stream/index.js"
+    },
+    "./stream/chat": {
+      "types": "./dist/stream/chat.d.ts",
+      "import": "./dist/stream/chat.js"
+    },
+    "./stream/sse": {
+      "types": "./dist/stream/sse.d.ts",
+      "import": "./dist/stream/sse.js"
+    },
+    "./stream/sse-connection": {
+      "types": "./dist/stream/sse-connection.d.ts",
+      "import": "./dist/stream/sse-connection.js"
+    },
+    "./api/client": {
+      "types": "./dist/api/client.d.ts",
+      "import": "./dist/api/client.js"
+    },
+    "./modules": {
+      "types": "./dist/modules/index.d.ts",
+      "import": "./dist/modules/index.js"
+    },
+    "./modules/studio-module": {
+      "types": "./dist/modules/studio-module.d.ts",
+      "import": "./dist/modules/studio-module.js"
+    },
+    "./storage/namespaced-storage": {
+      "types": "./dist/storage/namespaced-storage.d.ts",
+      "import": "./dist/storage/namespaced-storage.js"
+    }
+  }
+}

@@ -1,0 +1,111 @@
+name: Install and Validate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: install-and-validate-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  RUST_VERSION: "1.94.0"
+  PYTHON_VERSION: "3.12.13"
+  UV_VERSION: "0.10.9"
+  BUN_VERSION: "1.3.5"
+  CARGO_TERM_COLOR: always
+
+jobs:
+  source-install:
+    name: Source install
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        run: |
+          rustup toolchain install "${RUST_VERSION}" --profile minimal
+          rustup default "${RUST_VERSION}"
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/git
+            ~/.cargo/registry
+            target
+          key: ${{ runner.os }}-cargo-${{ env.RUST_VERSION }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-${{ env.RUST_VERSION }}-
+
+      - name: Check preview environment
+        run: ./scripts/check-env.sh
+
+      - name: Validate preview scripts
+        run: bash -n scripts/check-env.sh scripts/setup-env.sh scripts/install.sh
+
+      - name: Sync harness test dependencies
+        working-directory: py-flowai-harness
+        run: uv sync --extra dev --no-install-project
+
+      - name: Build harness native extension
+        working-directory: py-flowai-harness
+        run: uv run --with maturin maturin develop --manifest-path Cargo.toml --features extension-module --verbose
+
+      - name: Run harness tests
+        working-directory: py-flowai-harness
+        run: uv run pytest tests -q
+
+      - name: Run coordinator planner executor example tests
+        working-directory: py-flowai-harness
+        env:
+          PYTHONPATH: ../examples/coordinator_planner_executor/src
+        run: uv run --extra dev pytest ../examples/coordinator_planner_executor/tests -q
+
+      - name: Install Studio dependencies
+        working-directory: studio
+        run: bun install --frozen-lockfile
+
+      - name: Build Studio
+        working-directory: studio
+        run: bun run build
+
+      - name: Verify install plan
+        run: ./scripts/install.sh --dry-run
+
+      - name: Install harness from source
+        run: ./scripts/install.sh
+
+      - name: Install coordinator planner executor example
+        run: uv pip install --python .venv/bin/python -e examples/coordinator_planner_executor
+
+      - name: Run coordinator planner executor example smoke
+        run: .venv/bin/python -m coordinator_planner_executor.smoke
+
+      - name: Print installed harness version
+        run: .venv/bin/flowai-harness --version

@@ -1,0 +1,43 @@
+{
+  "workspaceKey": "default",
+  "tenant": {
+    "tenantId": "acme",
+    "version": "0.1"
+  },
+  "agents": [
+    {
+      "agentId": "scenario_coordinator",
+      "name": "scenario_coordinator",
+      "role": "coordinator",
+      "model": "claude-sonnet-4-6",
+      "stateful": true,
+      "entrypoint": true,
+      "toolkits": ["agents", "plans"],
+      "tools": ["search_products"],
+      "routes": ["planner", "insights"]
+    }
+  ],
+  "providers": [
+    {
+      "name": "anthropic",
+      "configured": true,
+      "credential": {
+        "kind": "env",
+        "ref": "ANTHROPIC_API_KEY"
+      }
+    }
+  ],
+  "plans": [
+    {
+      "name": "scenario_plan",
+      "schemaRef": "runtime://plans/scenario_plan/schema"
+    }
+  ],
+  "references": [
+    {
+      "name": "product_set",
+      "ttlMs": 3600000,
+      "schemaRef": "runtime://references/product_set/schema"
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "tenant": {
+    "resourceId": "acme",
+    "version": "v1"
+  },
+  "agents": [
+    {
+      "name": "coordinator",
+      "role": "coordinator",
+      "stateful": true,
+      "model": { "id": "claude-sonnet-4-6", "provider": null },
+      "systemPrompt": "You coordinate analytical work.",
+      "routes": ["planner", "executor"],
+      "toolkits": []
+    },
+    {
+      "name": "planner",
+      "role": "planner",
+      "stateful": true,
+      "model": { "id": "claude-sonnet-4-6", "provider": null },
+      "systemPrompt": "You produce typed plans.",
+      "routes": [],
+      "toolkits": []
+    },
+    {
+      "name": "executor",
+      "role": "executor",
+      "stateful": false,
+      "model": { "id": "claude-haiku-4-5", "provider": null },
+      "systemPrompt": "You execute approved plans.",
+      "routes": [],
+      "toolkits": []
+    },
+    {
+      "name": "product_insights",
+      "role": "specialist",
+      "stateful": false,
+      "model": { "id": "claude-sonnet-4-6", "provider": null },
+      "systemPrompt": "You answer focused product questions.",
+      "routes": [],
+      "toolkits": []
+    }
+  ],
+  "references": [
+    {
+      "name": "ProductSet",
+      "schema": { "type": "object" },
+      "ttlMs": 3600000
+    }
+  ],
+  "plans": [
+    {
+      "name": "ScenarioPlan",
+      "schema": { "type": "object" },
+      "displayAliases": [
+        { "status": "draft", "alias": "pending_approval" }
+      ]
+    }
+  ],
+  "toolkits": [
+    {
+      "id": "catalog",
+      "config": null
+    }
+  ],
+  "approvalPolicies": {
+    "plans": { "kind": "always" },
+    "tools": { "kind": "never" }
+  },
+  "storageFactories": {
+    "kv": null,
+    "plans": null,
+    "memory": null
+  },
+  "providers": {
+    "anthropic": { "apiKeyEnv": "ANTHROPIC_API_KEY" }
+  }
+}

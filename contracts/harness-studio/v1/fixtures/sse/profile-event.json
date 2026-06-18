@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "harness-studio/v1",
+  "workspaceKey": "default",
+  "runId": "profile_run_01",
+  "seq": 1,
+  "kind": "profile.progress",
+  "payload": {
+    "resourceId": "local-parquet",
+    "status": "profiling",
+    "tablesFound": 1,
+    "columnsProfiled": 8,
+    "totalColumns": 12
+  }
+}

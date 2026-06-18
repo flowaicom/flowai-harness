@@ -1,0 +1,191 @@
+name: Release Tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release tag to create, for example v1.0.0-alpha.2"
+        required: true
+        type: string
+      target_sha:
+        description: "Optional full commit SHA. If set, origin/main must currently match it."
+        required: false
+        type: string
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: release-tag-${{ inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    name: Create release tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Resolve target commit
+        id: target
+        shell: bash
+        env:
+          RELEASE_TARGET_SHA: ${{ inputs.target_sha }}
+        run: |
+          set -euo pipefail
+
+          if [ "${GITHUB_REF_NAME}" != "main" ]; then
+            echo "::error::Run this workflow from the main branch."
+            exit 1
+          fi
+
+          git fetch origin main --tags --force
+          target_sha="$(git rev-parse origin/main)"
+
+          if [ -n "${RELEASE_TARGET_SHA}" ]; then
+            if [[ ! "${RELEASE_TARGET_SHA}" =~ ^[0-9a-fA-F]{40}$ ]]; then
+              echo "::error::target_sha must be a full 40-character commit SHA."
+              exit 1
+            fi
+
+            requested_sha="${RELEASE_TARGET_SHA,,}"
+            if [ "${target_sha}" != "${requested_sha}" ]; then
+              echo "::error::origin/main is ${target_sha}, not requested target_sha ${requested_sha}."
+              exit 1
+            fi
+          fi
+
+          git checkout --detach "${target_sha}"
+          echo "sha=${target_sha}" >> "${GITHUB_OUTPUT}"
+
+      - name: Validate release tag and source versions
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          import json
+          import os
+          import pathlib
+          import re
+          import sys
+          import tomllib
+
+          version = os.environ["RELEASE_VERSION"]
+          match = re.fullmatch(r"v(\d+\.\d+\.\d+)(?:-(alpha|beta|rc)\.(\d+))?", version)
+          if match is None:
+              print(
+                  "::error::version must use SemVer tag format like v1.0.0-alpha.2, "
+                  "v1.0.0-beta.1, v1.0.0-rc.1, or v1.0.0",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
+
+          base, prerelease, prerelease_number = match.groups()
+          rust_version = base
+          python_version = base
+          if prerelease is not None:
+              rust_version = f"{base}-{prerelease}.{prerelease_number}"
+              python_suffix = {"alpha": "a", "beta": "b", "rc": "rc"}[prerelease]
+              python_version = f"{base}{python_suffix}{prerelease_number}"
+
+          errors = []
+
+          cargo = tomllib.loads(pathlib.Path("Cargo.toml").read_text())
+          cargo_version = cargo["workspace"]["package"]["version"]
+          if cargo_version != rust_version:
+              errors.append(f"Cargo.toml workspace version is {cargo_version}, expected {rust_version}")
+
+          pyproject = tomllib.loads(pathlib.Path("py-flowai-harness/pyproject.toml").read_text())
+          package_version = pyproject["project"]["version"]
+          if package_version != python_version:
+              errors.append(
+                  f"py-flowai-harness/pyproject.toml version is {package_version}, "
+                  f"expected {python_version}"
+              )
+
+          package_paths = [pathlib.Path("studio/package.json")]
+          package_paths.extend(sorted(pathlib.Path("studio/packages").glob("*/package.json")))
+          for package_path in package_paths:
+              package = json.loads(package_path.read_text())
+              studio_version = package["version"]
+              if studio_version != rust_version:
+                  errors.append(f"{package_path} version is {studio_version}, expected {rust_version}")
+
+          if errors:
+              for error in errors:
+                  print(f"::error::{error}", file=sys.stderr)
+              sys.exit(1)
+          PY
+
+      - name: Check tag does not already exist
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+
+          if git show-ref --tags --verify --quiet "refs/tags/${RELEASE_VERSION}"; then
+            echo "::error::Tag ${RELEASE_VERSION} already exists in the local tag namespace."
+            exit 1
+          fi
+
+          if git ls-remote --exit-code --tags origin "refs/tags/${RELEASE_VERSION}" >/dev/null 2>&1; then
+            echo "::error::Tag ${RELEASE_VERSION} already exists on origin."
+            exit 1
+          fi
+
+      - name: Verify Install and Validate passed
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_SHA: ${{ steps.target.outputs.sha }}
+        run: |
+          set -euo pipefail
+
+          success_url="$(
+            gh run list \
+              --workflow "Install and Validate" \
+              --branch main \
+              --commit "${TARGET_SHA}" \
+              --limit 20 \
+              --json conclusion,status,url \
+              --jq '.[] | select(.status == "completed" and .conclusion == "success") | .url' \
+              | head -n 1
+          )"
+
+          if [ -z "${success_url}" ]; then
+            echo "::error::No successful Install and Validate run found for ${TARGET_SHA}."
+            gh run list \
+              --workflow "Install and Validate" \
+              --branch main \
+              --commit "${TARGET_SHA}" \
+              --limit 10
+            exit 1
+          fi
+
+          echo "Install and Validate passed: ${success_url}"
+
+      - name: Create and push annotated tag
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+          TARGET_SHA: ${{ steps.target.outputs.sha }}
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git tag -a "${RELEASE_VERSION}" "${TARGET_SHA}" \
+            -m "Flow AI Harness ${RELEASE_VERSION} private preview"
+          git push origin "refs/tags/${RELEASE_VERSION}"

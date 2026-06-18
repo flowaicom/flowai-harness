@@ -1,0 +1,12 @@
+:root {
+  --md-text-font: "Brand Sans", ui-sans-serif, system-ui, sans-serif;
+  --md-code-font: "Brand Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@font-face {
+  font-family: "Brand Sans";
+  src: url("./fonts/BrandSans-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

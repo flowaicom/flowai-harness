@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "harness-studio/v1",
+  "workspaceKey": "default",
+  "runId": "run_01",
+  "threadId": "thread_01",
+  "agentId": "scenario_coordinator",
+  "seq": 1,
+  "kind": "message.delta",
+  "payload": {
+    "role": "assistant",
+    "text": "Drafting a scenario plan."
+  }
+}

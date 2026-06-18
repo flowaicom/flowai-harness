@@ -1,0 +1,25 @@
+{
+  "defaultWorkspaceKey": "default",
+  "workspaces": [
+    {
+      "workspaceKey": "default",
+      "displayName": "Local dev",
+      "description": "Default local runtime binding.",
+      "status": "ready",
+      "resourceId": "local-dev",
+      "metadata": {
+        "owner": "data-platform"
+      },
+      "capabilities": [
+        "runtime.inspect",
+        "chat.stream",
+        "tools.inspect",
+        "approvals.decide",
+        "runs.list",
+        "data.profile",
+        "tests.manage",
+        "evals.run"
+      ]
+    }
+  ]
+}

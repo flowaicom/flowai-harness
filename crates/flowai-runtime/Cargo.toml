@@ -1,0 +1,46 @@
+[package]
+name = "flowai-runtime"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Canonical Flow AI Harness runtime engine and orchestration spec"
+
+[dependencies]
+agent-fw-agent = { workspace = true }
+agent-fw-algebra = { workspace = true }
+agent-fw-catalog = { workspace = true }
+agent-fw-catalog-index = { workspace = true }
+agent-fw-catalog-tools = { workspace = true }
+agent-fw-core = { workspace = true }
+agent-fw-eval = { workspace = true }
+agent-fw-ingest = { workspace = true }
+agent-fw-interpreter = { workspace = true, features = ["postgres", "redis"] }
+agent-fw-mcp = { workspace = true }
+agent-fw-plan = { workspace = true }
+agent-fw-reference = { workspace = true }
+agent-fw-search = { workspace = true }
+agent-fw-tool = { workspace = true }
+agent-fw-tool-macro = { workspace = true }
+async-trait = { workspace = true }
+chrono = { workspace = true }
+futures = { workspace = true }
+hex = { workspace = true }
+jsonschema = { workspace = true }
+regex-lite = { workspace = true }
+rusqlite = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+sqlx = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+uuid = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+agent-fw-interpreter = { workspace = true, features = ["postgres", "redis"] }
+agent-fw-test = { workspace = true }
+reqwest = { workspace = true }
+rmcp = { workspace = true }
+tokio-stream = { workspace = true }

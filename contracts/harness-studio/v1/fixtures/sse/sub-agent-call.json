@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "harness-studio/v1",
+  "workspaceKey": "default",
+  "runId": "run_01",
+  "threadId": "thread_01",
+  "agentId": "scenario_coordinator",
+  "seq": 3,
+  "kind": "sub_agent.call.started",
+  "payload": {
+    "targetAgentId": "insights",
+    "childThreadId": "thread_01/insights/1",
+    "message": "Find relevant product constraints."
+  }
+}

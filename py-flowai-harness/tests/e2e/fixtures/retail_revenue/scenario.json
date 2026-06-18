@@ -1,0 +1,79 @@
+{
+  "name": "retail_revenue",
+  "database_id": "retail_warehouse",
+  "target_schema": "retail",
+  "profile_tables": [
+    "regions",
+    "stores",
+    "customers",
+    "products",
+    "campaigns",
+    "orders",
+    "order_items",
+    "refunds"
+  ],
+  "expected_columns": {
+    "regions": ["id", "code", "name", "vat_reporting"],
+    "stores": ["id", "region_id", "name", "channel"],
+    "customers": ["id", "external_id", "segment", "region_id"],
+    "products": ["id", "sku", "name", "category"],
+    "campaigns": ["id", "code", "name", "channel"],
+    "orders": ["id", "customer_id", "store_id", "campaign_id", "ordered_at", "status", "currency"],
+    "order_items": ["id", "order_id", "product_id", "quantity", "unit_price", "discount_amount", "tax_amount"],
+    "refunds": ["id", "order_item_id", "refunded_at", "quantity", "refund_amount", "reason"]
+  },
+  "expected_row_counts": {
+    "regions": 3,
+    "stores": 3,
+    "customers": 4,
+    "products": 3,
+    "campaigns": 2,
+    "orders": 5,
+    "order_items": 7,
+    "refunds": 2
+  },
+  "expected_relationships": [
+    {"from_table": "stores", "from_column": "region_id", "to_table": "regions", "to_column": "id"},
+    {"from_table": "customers", "from_column": "region_id", "to_table": "regions", "to_column": "id"},
+    {"from_table": "orders", "from_column": "customer_id", "to_table": "customers", "to_column": "id"},
+    {"from_table": "orders", "from_column": "store_id", "to_table": "stores", "to_column": "id"},
+    {"from_table": "orders", "from_column": "campaign_id", "to_table": "campaigns", "to_column": "id"},
+    {"from_table": "order_items", "from_column": "order_id", "to_table": "orders", "to_column": "id"},
+    {"from_table": "order_items", "from_column": "product_id", "to_table": "products", "to_column": "id"},
+    {"from_table": "refunds", "from_column": "order_item_id", "to_table": "order_items", "to_column": "id"}
+  ],
+  "document_paths": [
+    "documents/revenue_policy.md",
+    "documents/refund_policy.md",
+    "documents/regional_reporting.md",
+    "documents/campaign_attribution.md"
+  ],
+  "limits": {
+    "max_tables": 8,
+    "max_columns": 64,
+    "max_estimated_input_tokens": 500000
+  },
+  "truth_questions": [
+    {
+      "id": "discover_net_revenue_inputs",
+      "kind": "discovery",
+      "question": "Which tables, fields, and policy rules should I use to calculate Q1 net revenue by region?",
+      "expected_tables": ["orders", "order_items", "refunds", "stores", "regions"],
+      "expected_terms": ["completed orders", "discounts", "refunds", "tax is excluded", "store region"]
+    },
+    {
+      "id": "q1_net_revenue_by_region",
+      "kind": "metric",
+      "question": "Calculate Q1 2026 net revenue by region after refunds.",
+      "expected_tables": ["orders", "order_items", "refunds", "stores", "regions"],
+      "expected_terms": ["refunds", "completed orders", "tax is excluded"],
+      "expected_rows": {
+        "APAC": "150.00",
+        "EMEA": "240.00",
+        "NAM": "260.00"
+      },
+      "expected_total": "650.00",
+      "validation_sql": "SELECT r.code AS region, to_char(SUM((oi.quantity * oi.unit_price) - oi.discount_amount - COALESCE(ref.refund_amount, 0)), 'FM999999990.00') AS net_revenue FROM retail.orders o JOIN retail.order_items oi ON oi.order_id = o.id JOIN retail.stores s ON s.id = o.store_id JOIN retail.regions r ON r.id = s.region_id LEFT JOIN (SELECT order_item_id, SUM(refund_amount) AS refund_amount FROM retail.refunds GROUP BY order_item_id) ref ON ref.order_item_id = oi.id WHERE o.status = 'completed' AND o.ordered_at >= DATE '2026-01-01' AND o.ordered_at < DATE '2026-04-01' GROUP BY r.code ORDER BY r.code"
+    }
+  ]
+}

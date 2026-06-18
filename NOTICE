@@ -1,0 +1,68 @@
+NOTICE
+======
+
+Flow AI Harness (flowai-harness)
+Copyright (c) 2026 Flow AI. All rights reserved.
+
+Licensed under the Flow AI Private Preview License
+(LicenseRef-FlowAI-Private-Preview). See LICENSE.md for the full terms.
+The Software is licensed, not sold, for internal non-production evaluation
+during the evaluation period. Production use, commercial use, redistribution,
+and hosted or third-party-facing use require a separate written agreement
+with Flow AI.
+
+---------------------------------------------------------------------------
+Third-party software
+---------------------------------------------------------------------------
+
+This product includes, depends on, and interoperates with third-party
+software governed by separate licenses. Those licenses continue to apply to
+the applicable third-party components. This file does not modify or supersede
+any third-party license term.
+
+Vendored / patched components
+-----------------------------
+
+This repository vendors a patched copy of the `rig` LLM client library under
+`third_party/rig/`:
+
+  - rig-core — MIT License
+    Copyright (c) Playgrounds Analytics Inc.
+    See: third_party/rig/rig/rig-core/LICENSE
+
+  - rig-bedrock — MIT License
+    Copyright (c) Playgrounds Analytics Inc.
+    See: third_party/rig/rig-integrations/rig-bedrock/LICENSE
+
+  - rig-derive — MIT License
+    Copyright (c) Playgrounds Analytics Inc.
+
+  The patch applied on top of the pinned upstream revision is documented in
+  third_party/rig/UPSTREAM.md (prompt-caching breakpoints for Anthropic tool
+  definitions and AWS Bedrock cache points, plus a `cache_creation_input_tokens`
+  field on the shared `Usage` struct). The MIT license and copyright notice
+  are retained verbatim with the vendored sources, as required.
+
+Rust dependencies
+-----------------
+
+All crates resolved through crates.io retain their upstream licenses. The
+full machine-readable inventory of Rust dependencies and their licenses can be
+regenerated with:
+
+    cargo install cargo-about
+    cargo about generate cargo/about/about.hbs > docs/third-party-licenses.html
+
+or audited with:
+
+    cargo install cargo-deny
+    cargo deny check licenses
+
+Python dependencies
+-------------------
+
+Python dependencies are resolved through PyPI with hashes recorded in
+py-flowai-harness/uv.lock; each retains its upstream license.
+
+---------------------------------------------------------------------------
+This NOTICE is provided for informational and attribution purposes only.

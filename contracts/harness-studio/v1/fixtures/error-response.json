@@ -1,0 +1,10 @@
+{
+  "error": {
+    "code": "workspace.not_found",
+    "message": "Workspace `missing` was not found.",
+    "retryable": false,
+    "details": {
+      "workspaceKey": "missing"
+    }
+  }
+}

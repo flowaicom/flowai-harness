@@ -1,0 +1,12 @@
+.data/
+dist/
+.env
+.envrc
+.venv/
+__pycache__/
+*.py[cod]
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+*.target.sqlite.zst

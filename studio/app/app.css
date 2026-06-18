@@ -1,0 +1,1325 @@
+@import "tailwindcss";
+
+@source "../packages/studio-ui/src/**/*.{ts,tsx}";
+@source "../packages/studio-features-chat/src/**/*.{ts,tsx}";
+@source "../packages/studio-features-connect/src/**/*.{ts,tsx}";
+@source "../packages/studio-features-tests/src/**/*.{ts,tsx}";
+@source "../packages/studio-features-evals/src/**/*.{ts,tsx}";
+
+@custom-variant dark (&:is(.dark *, .slate *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --font-sans: "Geist", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+:root {
+  --radius: 0.5rem; /* 8px — design standard */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.1 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.1 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.1 0 0);
+  --primary: oklch(0.15 0 0);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.96 0 0);
+  --secondary-foreground: oklch(0.15 0 0);
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.45 0 0);
+  --accent: oklch(0.96 0 0);
+  --accent-foreground: oklch(0.15 0 0);
+  --destructive: oklch(0.45 0 0);
+  --border: oklch(0 0 0 / 10%);
+  --input: oklch(0 0 0 / 15%);
+  --ring: oklch(0.6 0 0);
+
+  /* Spacing scale */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+
+  /* Animation durations */
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+
+  /* Shadow system */
+  --shadow-xs: 0 1px 3px 0px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0px rgba(0, 0, 0, 0.10), 0 1px 2px -1px rgba(0, 0, 0, 0.10);
+  --shadow-md: 0 1px 3px 0px rgba(0, 0, 0, 0.10), 0 2px 4px -1px rgba(0, 0, 0, 0.10);
+  --shadow-lg: 0 1px 3px 0px rgba(0, 0, 0, 0.10), 0 4px 6px -1px rgba(0, 0, 0, 0.10);
+  --shadow-xl: 0 1px 3px 0px rgba(0, 0, 0, 0.10), 0 8px 10px -1px rgba(0, 0, 0, 0.10);
+}
+
+.dark {
+  --background: oklch(0.1 0 0);
+  --foreground: oklch(0.98 0 0);
+  --card: oklch(0.15 0 0);
+  --card-foreground: oklch(0.98 0 0);
+  --popover: oklch(0.15 0 0);
+  --popover-foreground: oklch(0.98 0 0);
+  --primary: oklch(0.9 0 0);
+  --primary-foreground: oklch(0.1 0 0);
+  --secondary: oklch(0.2 0 0);
+  --secondary-foreground: oklch(0.98 0 0);
+  --muted: oklch(0.2 0 0);
+  --muted-foreground: oklch(0.6 0 0);
+  --accent: oklch(0.2 0 0);
+  --accent-foreground: oklch(0.98 0 0);
+  --destructive: oklch(0.6 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.5 0 0);
+}
+
+.slate {
+  --background: oklch(0.26 0.03 265);
+  --foreground: oklch(0.96 0.005 250);
+  --card: oklch(0.31 0.03 265);
+  --card-foreground: oklch(0.96 0.005 250);
+  --popover: oklch(0.29 0.035 265);
+  --popover-foreground: oklch(0.96 0.005 250);
+  --primary: oklch(0.90 0.02 250);
+  --primary-foreground: oklch(0.22 0.03 265);
+  --secondary: oklch(0.35 0.03 265);
+  --secondary-foreground: oklch(0.92 0.01 250);
+  --muted: oklch(0.33 0.03 265);
+  --muted-foreground: oklch(0.66 0.03 250);
+  --accent: oklch(0.35 0.03 265);
+  --accent-foreground: oklch(0.92 0.01 250);
+  --destructive: oklch(0.55 0.20 25);
+  --border: oklch(0.50 0.03 260 / 22%);
+  --input: oklch(0.55 0.03 260 / 22%);
+  --ring: oklch(0.65 0.15 250);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ============================================
+   Base Styles
+   ============================================ */
+
+body {
+  font-family: var(--font-sans);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+:focus-visible {
+  @apply outline-2 outline-offset-2 outline-blue-500;
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+
+.truncate-lines-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.truncate-lines-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* No scrollbar utility */
+@utility no-scrollbar {
+  &::-webkit-scrollbar {
+    display: none !important;
+  }
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+/* Auto-sizing textarea */
+.field-sizing-content {
+  field-sizing: content;
+  min-height: 2lh;
+  max-height: 10lh;
+  resize: none;
+  overflow-y: auto;
+}
+
+/* Fallback for browsers without field-sizing */
+@supports not (field-sizing: content) {
+  .field-sizing-content {
+    min-height: 40px;
+    height: auto;
+  }
+}
+
+/* Glass morphism utilities */
+.glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: saturate(180%) blur(6px);
+  -webkit-backdrop-filter: saturate(180%) blur(6px);
+}
+
+:is(.dark, .slate) .glass {
+  background: rgba(9, 9, 11, 0.6);
+}
+
+.slate .glass {
+  background: oklch(0.26 0.04 265 / 70%);
+}
+
+.glass-subtle {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+:is(.dark, .slate) .glass-subtle {
+  background: rgba(9, 9, 11, 0.95);
+}
+
+.slate .glass-subtle {
+  background: oklch(0.26 0.04 265 / 92%);
+}
+
+@utility shadow-xs {
+  box-shadow: var(--shadow-xs);
+}
+
+/* ============================================
+   Pipeline-Tooling Design Tokens
+   ============================================
+   Translucent status backgrounds, accent keylines,
+   and refined status indicators.
+*/
+
+:root {
+  /* Translucent accent backgrounds (12% opacity) */
+  --accent-emerald: oklch(0.72 0.17 162 / 12%);
+  --accent-blue: oklch(0.62 0.19 250 / 12%);
+  --accent-amber: oklch(0.75 0.16 75 / 12%);
+  --accent-red: oklch(0.55 0.20 25 / 12%);
+  --accent-purple: oklch(0.60 0.19 300 / 12%);
+  --accent-orange: oklch(0.70 0.16 50 / 12%);
+
+  /* Solid accent colors for borders and dots */
+  --dot-emerald: oklch(0.72 0.17 162);
+  --dot-blue: oklch(0.62 0.19 250);
+  --dot-amber: oklch(0.75 0.16 75);
+  --dot-red: oklch(0.55 0.20 25);
+  --dot-purple: oklch(0.60 0.19 300);
+  --dot-orange: oklch(0.70 0.16 50);
+
+  /* Keyline — inset box-shadows instead of borders */
+  --keyline: oklch(0 0 0 / 8%);
+}
+
+:is(.dark, .slate) {
+  --accent-emerald: oklch(0.72 0.17 162 / 15%);
+  --accent-blue: oklch(0.62 0.19 250 / 15%);
+  --accent-amber: oklch(0.75 0.16 75 / 15%);
+  --accent-red: oklch(0.55 0.20 25 / 15%);
+  --accent-purple: oklch(0.60 0.19 300 / 15%);
+  --accent-orange: oklch(0.70 0.16 50 / 15%);
+  --keyline: oklch(1 0 0 / 8%);
+}
+
+/* Status dot base — 6px with configurable color */
+@utility status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Keyline card — inset box-shadow border (table pattern) */
+@utility keyline-card {
+  box-shadow: inset 0 0 0 1px var(--keyline);
+  border: none;
+}
+
+/* Left accent bar (alert pattern — 3px inset left border) */
+@utility accent-bar-emerald {
+  box-shadow: inset 3px 0 0 var(--dot-emerald);
+}
+
+@utility accent-bar-blue {
+  box-shadow: inset 3px 0 0 var(--dot-blue);
+}
+
+@utility accent-bar-amber {
+  box-shadow: inset 3px 0 0 var(--dot-amber);
+}
+
+@utility accent-bar-red {
+  box-shadow: inset 3px 0 0 var(--dot-red);
+}
+
+/* ============================================
+   Form Controls
+   ============================================
+   Consistent input/select/textarea styling.
+   8px radius, 14px font, inset box-shadow borders, 6px 12px padding.
+*/
+
+/* Shared base for text inputs, selects, textareas */
+.form-input,
+.form-select,
+.form-textarea {
+  font-size: 0.8125rem; /* 13px */
+  line-height: 1.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: border-color 100ms, box-shadow 150ms;
+  outline: none;
+  width: 100%;
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: var(--muted-foreground);
+  opacity: 0.6;
+}
+
+.form-input:hover,
+.form-select:hover,
+.form-textarea:hover {
+  border-color: oklch(0 0 0 / 20%);
+}
+
+:is(.dark, .slate) .form-input:hover,
+:is(.dark, .slate) .form-select:hover,
+:is(.dark, .slate) .form-textarea:hover {
+  border-color: oklch(1 0 0 / 20%);
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 2px oklch(0.62 0.19 250 / 15%);
+}
+
+.form-input:disabled,
+.form-select:disabled,
+.form-textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--muted);
+}
+
+.form-select {
+  appearance: none;
+  padding-right: 2rem;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%236b7280' stroke-width='1.5'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 1rem;
+}
+
+.form-textarea {
+  min-height: 4rem;
+  resize: vertical;
+}
+
+/* Compact form variant — smaller padding for dense forms */
+.form-input-sm,
+.form-select-sm {
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+  padding: 0.25rem 0.5rem;
+}
+
+/* Form label — 12px, weight 400, light color */
+.form-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  margin-bottom: 0.375rem;
+}
+
+/* Form hint — secondary text below an input */
+.form-hint {
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+  opacity: 0.7;
+  margin-top: 0.25rem;
+}
+
+/* ============================================
+   Data Tables
+   ============================================
+   Keyline borders via box-shadow, 12px headers, 13px cells.
+*/
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.data-table th {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--keyline);
+}
+
+.data-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--keyline);
+  vertical-align: middle;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tr:hover td {
+  background-color: oklch(0 0 0 / 2%);
+}
+
+:is(.dark, .slate) .data-table tr:hover td {
+  background-color: oklch(1 0 0 / 3%);
+}
+
+/* Compact table variant */
+.data-table-compact th,
+.data-table-compact td {
+  padding: 0.375rem 0.5rem;
+}
+
+/* Numeric cells — right-aligned, monospace */
+.data-table .cell-numeric {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================
+   Tags & Badges
+   ============================================
+   8px radius, 4px 8px padding, 12px font.
+*/
+
+@utility tag-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* Section header — shared across all tabs */
+@utility section-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+}
+
+/* ============================================
+   Fork Experience — Visual Language
+   ============================================
+   Fork-specific styles for the eval drill-down forking workflow.
+   Amber accent for fork identity, visual dividers, context banners.
+*/
+
+/* Fork divider — horizontal line at the fork point */
+.fork-divider {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.fork-divider::before {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--dot-amber), transparent);
+  opacity: 0.5;
+}
+
+.fork-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--dot-amber), transparent);
+  opacity: 0.5;
+}
+
+/* Fork banner — context strip for fork views */
+.fork-banner {
+  box-shadow: inset 3px 0 0 var(--dot-amber);
+  background: var(--accent-amber);
+}
+
+/* Fork success banner — after saving as test case */
+.fork-success-banner {
+  box-shadow: inset 3px 0 0 var(--dot-emerald);
+  background: var(--accent-emerald);
+}
+
+/* ============================================
+   Animations
+   ============================================ */
+
+/* Pulse soft */
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+/* Slide up */
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up var(--duration-normal) ease-out;
+}
+
+/* Streaming cursor */
+@keyframes blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.streaming-cursor::after {
+  content: "\25CB";
+  animation: blink 1s step-end infinite;
+  @apply ml-0.5 text-blue-500;
+}
+
+/* Shimmer animation for loading states */
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.animate-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+:is(.dark, .slate) .animate-shimmer::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 100%
+  );
+}
+
+/* Reveal line animation for underlines/progress */
+@keyframes revealLine {
+  0% {
+    transform: scaleX(0);
+    transform-origin: left;
+    opacity: 0.25;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+@utility animate-reveal-line {
+  animation: revealLine 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Spinner fade animation */
+@keyframes spinner-fade {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@utility animate-spinner-fade {
+  animation: spinner-fade 200ms ease-out forwards;
+}
+
+/* Cell select pulse */
+@keyframes cell-select {
+  0% { box-shadow: 0 0 0 0 oklch(0.65 0.20 250 / 0.6); }
+  100% { box-shadow: 0 0 0 6px oklch(0.65 0.20 250 / 0); }
+}
+
+.animate-cell-select { animation: cell-select 400ms ease-out; }
+
+/* Slide in from right */
+@keyframes slide-in-right {
+  from { transform: translateX(100%); opacity: 0.8; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.animate-slide-in-right { animation: slide-in-right 300ms cubic-bezier(0.16, 1, 0.3, 1); }
+
+/* Navigation progress bar — indeterminate shimmer */
+@keyframes nav-progress {
+  0% { transform: scaleX(0); }
+  40% { transform: scaleX(0.6); }
+  100% { transform: scaleX(0.9); }
+}
+
+.animate-nav-progress {
+  animation: nav-progress 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Dialog/overlay entrance animations */
+@keyframes overlay-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes dialog-scale-in {
+  from { opacity: 0; transform: scale(0.97) translateY(4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.animate-overlay-in {
+  animation: overlay-fade-in 150ms ease-out;
+}
+
+.animate-dialog-in {
+  animation: dialog-scale-in 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Shimmer for running matrix cells */
+@keyframes matrix-cell-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.matrix-cell-shimmer {
+  animation: matrix-cell-shimmer 1.5s ease-in-out infinite;
+}
+
+/* Pulse glow */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1);
+  }
+}
+
+@utility animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* ============================================
+   Accordion Animations
+   ============================================ */
+
+@keyframes accordion-down {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
+
+@utility animate-accordion-down {
+  animation: accordion-down 300ms ease-out;
+}
+
+@utility animate-accordion-up {
+  animation: accordion-up 300ms ease-out;
+}
+
+/* ============================================
+   Collapsible Animations
+   ============================================ */
+
+@keyframes collapsible-down {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+  }
+}
+
+@keyframes collapsible-up {
+  from {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
+
+@utility animate-collapsible-down {
+  animation: collapsible-down 200ms ease-out;
+}
+
+@utility animate-collapsible-up {
+  animation: collapsible-up 200ms ease-out;
+}
+
+/* ============================================
+   Enhanced Markdown Typography
+   ============================================ */
+
+.markdown-body {
+  /* List styling with primary-colored markers */
+  & ul > li::marker {
+    color: hsl(var(--primary) / 0.7);
+    font-size: 1.1em;
+  }
+
+  & ol {
+    counter-reset: item;
+    list-style: none;
+    padding-left: 0;
+  }
+
+  & ol > li {
+    counter-increment: item;
+    padding-left: 2em;
+    position: relative;
+  }
+
+  & ol > li::before {
+    content: counter(item) '.';
+    font-weight: 600;
+    color: hsl(var(--primary));
+    display: inline-block;
+    width: 2em;
+    margin-left: -2em;
+    text-align: right;
+    padding-right: 0.5em;
+  }
+
+  /* Nested list variations */
+  & ol ol > li::before {
+    content: counter(item, lower-alpha) '.';
+  }
+
+  & ol ol ol > li::before {
+    content: counter(item, lower-roman) '.';
+  }
+
+  /* Blockquote styling */
+  & blockquote {
+    border-left: 2px solid hsl(var(--border) / 0.4);
+    padding-left: 0.75rem;
+    color: hsl(var(--muted-foreground));
+    font-style: italic;
+  }
+
+  /* Code block enhancements */
+  & pre {
+    border-radius: var(--radius);
+    border: 1px solid hsl(var(--border));
+    overflow-x: auto;
+  }
+
+  & code {
+    font-family: var(--font-mono);
+  }
+
+  /* Inline code */
+  & :not(pre) > code {
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+    background: hsl(var(--muted) / 0.5);
+    font-size: 0.9em;
+  }
+
+  /* Table styling */
+  & table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1rem 0;
+  }
+
+  & th,
+  & td {
+    border: 1px solid hsl(var(--border));
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+  }
+
+  & th {
+    background: hsl(var(--muted) / 0.3);
+    font-weight: 600;
+  }
+
+  & tr:hover {
+    background: hsl(var(--accent) / 0.3);
+  }
+}
+
+/* ============================================
+   Compact Markdown for Chat Bubbles
+   ============================================
+   Lightweight typography for markdown inside chat messages.
+   Tighter spacing than .markdown-body; inherits font-size from parent.
+*/
+
+.markdown-content {
+  line-height: 1.5;
+  word-break: break-word;
+
+  & > *:first-child { margin-top: 0; }
+  & > *:last-child { margin-bottom: 0; }
+
+  & p { margin: 0.25em 0; }
+
+  & strong { font-weight: 600; }
+
+  & ul, & ol { margin: 0.25em 0; padding-left: 1.5em; }
+  & li { margin: 0.125em 0; }
+  & li > p { margin: 0; }
+
+  & pre {
+    margin: 0.5em 0;
+    padding: 0.5em 0.75em;
+    border-radius: 0.375rem;
+    background: var(--muted);
+    overflow-x: auto;
+    font-size: 0.85em;
+  }
+
+  & code { font-family: var(--font-mono); }
+
+  & :not(pre) > code {
+    padding: 0.1em 0.25em;
+    border-radius: 0.25rem;
+    background: var(--muted);
+    font-size: 0.9em;
+  }
+
+  & blockquote {
+    margin: 0.25em 0;
+    padding-left: 0.75em;
+    border-left: 2px solid var(--border);
+    color: var(--muted-foreground);
+  }
+
+  & a {
+    color: oklch(0.6 0.15 250);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  & h1, & h2, & h3, & h4 {
+    font-weight: 600;
+    margin: 0.5em 0 0.25em;
+    line-height: 1.3;
+  }
+  & h1 { font-size: 1.15em; }
+  & h2 { font-size: 1.1em; }
+  & h3 { font-size: 1.05em; }
+
+  & hr { margin: 0.5em 0; border-color: var(--border); }
+
+  & table { border-collapse: collapse; margin: 0.5em 0; font-size: 0.9em; }
+  & th, & td { border: 1px solid var(--border); padding: 0.25em 0.5em; }
+  & th { background: var(--muted); font-weight: 600; }
+}
+
+/* User-message variant: inherit inverted text color, lighter code bg */
+.markdown-content-user {
+  & :not(pre) > code { background: rgba(255, 255, 255, 0.15); }
+  & pre { background: rgba(255, 255, 255, 0.1); }
+  & a { color: rgba(255, 255, 255, 0.85); }
+  & blockquote { border-left-color: rgba(255, 255, 255, 0.3); color: rgba(255, 255, 255, 0.8); }
+}
+
+/* Code block copy-to-clipboard button */
+.code-copy-btn {
+  position: absolute;
+  top: 0.375rem;
+  right: 0.375rem;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--border);
+  background: var(--background);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 150ms, color 150ms, background 150ms;
+  line-height: 0;
+}
+pre:hover > .code-copy-btn { opacity: 1; }
+.code-copy-btn:hover { background: var(--muted); color: var(--foreground); }
+.code-copy-btn.copied { color: var(--dot-emerald); }
+
+/* ============================================
+   Collapsible Animation (CSS Grid trick)
+   ============================================
+   Animates height: 0 → auto using grid-template-rows.
+   No JS measurement needed. Composable with any content.
+*/
+
+.collapsible-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 150ms ease-out;
+}
+
+.collapsible-body.open {
+  grid-template-rows: 1fr;
+}
+
+.collapsible-body > .collapsible-inner {
+  overflow: hidden;
+}
+
+/* ============================================
+   Structured Result Table
+   ============================================ */
+
+.structured-result {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1px 0.75rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.structured-result .sr-key {
+  color: hsl(var(--muted-foreground));
+  font-weight: 500;
+  white-space: nowrap;
+  padding: 0.125rem 0;
+}
+
+.structured-result .sr-val {
+  font-family: var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0.125rem 0;
+}
+
+.structured-result .sr-val.sr-success {
+  color: hsl(var(--chart-2, 142 71% 45%));
+}
+
+.structured-result .sr-val.sr-error {
+  color: hsl(var(--destructive, 0 84% 60%));
+}
+
+.structured-result .sr-val.sr-number {
+  color: hsl(var(--chart-1, 220 70% 50%));
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================
+   Tool Group Accordion
+   ============================================ */
+
+.tool-group-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 100ms;
+}
+
+.tool-group-header:hover {
+  background: hsl(var(--muted));
+}
+
+.tool-group-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.tool-group-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.0625rem 0.375rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-family: var(--font-mono);
+  background: hsl(var(--muted) / 0.7);
+  color: hsl(var(--muted-foreground));
+  white-space: nowrap;
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tool-group-pill .pill-dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tool-group-pill .pill-dot.done {
+  background: hsl(var(--chart-2, 142 71% 45%));
+}
+
+.tool-group-pill .pill-dot.running {
+  background: hsl(var(--chart-1, 220 70% 50%));
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+.tool-group-pill .pill-dot.cancelled {
+  background: hsl(var(--muted-foreground) / 0.6);
+}
+
+.tool-group-pill .pill-dot.failed {
+  background: hsl(var(--destructive));
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ============================================
+   Mobile Viewport Fixes
+   ============================================ */
+
+@media screen and (max-width: 1024px) {
+  .h-screen-safe {
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  .min-h-screen-safe {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+}
+
+/* iOS Safari fix for 100vh */
+@supports (-webkit-touch-callout: none) {
+  .h-screen-safe {
+    height: -webkit-fill-available;
+  }
+
+  .min-h-screen-safe {
+    min-height: -webkit-fill-available;
+  }
+}
+
+/* ============================================
+   Scroll Indicator Gradients
+   ============================================ */
+
+.scroll-indicator-left {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 24px;
+  background: linear-gradient(to right, hsl(var(--background)), transparent);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.scroll-indicator-right {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 24px;
+  background: linear-gradient(to left, hsl(var(--background)), transparent);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* ============================================
+   Reduced Motion Support
+   ============================================
+   Respects user's motion preferences for accessibility and performance.
+*/
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-pulse-soft,
+  .animate-slide-up,
+  .streaming-cursor::after,
+  .animate-pulse,
+  .animate-bounce,
+  .animate-spin,
+  .animate-shimmer::after,
+  .animate-reveal-line,
+  .animate-spinner-fade,
+  .animate-cell-select,
+  .animate-slide-in-right,
+  .animate-nav-progress,
+  .animate-overlay-in,
+  .animate-dialog-in,
+  .matrix-cell-shimmer {
+    animation: none !important;
+  }
+
+  /* Reduce transition durations */
+  * {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================
+   Performance: CSS Containment (P8)
+   ============================================
+   content-visibility: auto tells the browser to skip layout/paint for
+   off-screen content. This is a massive performance win for long threads.
+   contain-intrinsic-size provides an estimated size for virtualization.
+*/
+
+.message-item-contained {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 120px; /* Estimated average message height */
+}
+
+/* For messages that are actively being streamed, we need full visibility */
+.message-item-streaming {
+  content-visibility: visible;
+}
+
+/* ============================================
+   Performance: Streaming Text (P10)
+   ============================================
+   During streaming, show raw text without markdown parsing.
+   Monospace font makes streaming text look intentional.
+*/
+
+.streaming-text {
+  font-family: var(--font-mono);
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.6;
+}
+
+/* ============================================
+   Performance: GPU Acceleration
+   ============================================
+   Force GPU acceleration for smooth animations.
+*/
+
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* ============================================
+   Performance: Scroll Optimization
+   ============================================
+   Optimize scroll container for performance.
+*/
+
+.scroll-container {
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ============================================
+   Performance: Layer Promotion
+   ============================================
+   Promote frequently animated elements to their own layer.
+*/
+
+.promote-layer {
+  isolation: isolate;
+  contain: layout style;
+}
+
+/* ============================================
+   Performance: Virtualized List Container
+   ============================================
+   Styles for @tanstack/react-virtual containers.
+   contain: strict enables all containment optimizations.
+*/
+
+.virtualized-list {
+  position: relative;
+  contain: strict;
+}
+
+.virtualized-item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  contain: layout style;
+}
+
+/* ============================================
+   Performance: Tool Card Containment
+   ============================================
+   Collapsible tool cards should be contained to prevent
+   layout thrashing when expanding/collapsing.
+*/
+
+.tool-card {
+  contain: layout style;
+  will-change: height;
+}
+
+.tool-card-content {
+  contain: content;
+}
+
+/* ============================================
+   Performance: Input Area Focus Optimization
+   ============================================
+   Prevent layout shifts when focusing input areas.
+*/
+
+.input-area {
+  contain: layout;
+}
+
+.input-area:focus-within {
+  /* Maintain containment during focus */
+  contain: layout;
+}
+
+/* ============================================
+   Performance: Message Bubble Optimization
+   ============================================
+   Optimize message bubbles for rendering.
+*/
+
+.message-bubble {
+  contain: layout paint;
+  transform: translateZ(0);
+}
+
+/* User messages */
+.message-bubble-user {
+  contain: layout paint style;
+}
+
+/* Assistant messages with tool calls need less strict containment */
+.message-bubble-assistant {
+  contain: layout;
+}

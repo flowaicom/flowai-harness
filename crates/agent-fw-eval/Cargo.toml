@@ -1,0 +1,30 @@
+[package]
+name = "agent-fw-eval"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "First-class evaluation system: scoring, test cases, ground truth, event bus"
+
+[features]
+test-support = []
+
+[dependencies]
+agent-fw-core = { workspace = true }
+agent-fw-algebra = { workspace = true }
+async-trait = { workspace = true }
+dashmap = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+hex = { workspace = true }
+sha2 = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+agent-fw-interpreter = { workspace = true }
+hegel = { workspace = true }
+tokio-test = { workspace = true }

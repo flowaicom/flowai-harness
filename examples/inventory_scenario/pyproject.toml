@@ -1,0 +1,35 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "inventory-scenario"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "flowai-harness",
+    "fastapi>=0.136.1",
+    "psycopg[binary]>=3.2",
+    "pydantic>=2.9.0",
+    "uvicorn>=0.47.0",
+    "zstandard>=0.23",
+]
+
+[dependency-groups]
+dev = [
+    "httpx2>=0.28",
+    "pytest>=8.0",
+]
+
+[project.scripts]
+inventory-scenario = "inventory_scenario.cli:main"
+inventory-scenario-dump-neon = "inventory_scenario.support.dataset_artifacts.dump_neon:main"
+inventory-scenario-seed = "inventory_scenario.support.seed:main"
+inventory-scenario-smoke = "inventory_scenario.support.smoke:main"
+inventory-scenario-verify-artifact = "inventory_scenario.support.dataset_artifacts.verify_public_artifact:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.uv.sources]
+flowai-harness = { path = "../../py-flowai-harness", editable = true }

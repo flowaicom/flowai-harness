@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "harness-studio/v1",
+  "workspaceKey": "default",
+  "runId": "run_01",
+  "threadId": "thread_01",
+  "agentId": "scenario_coordinator",
+  "seq": 4,
+  "kind": "approval.required",
+  "payload": {
+    "approvalId": "approval_01",
+    "kind": "tool",
+    "title": "Run warehouse mutation",
+    "toolName": "apply_price_change",
+    "risk": "side_effecting"
+  }
+}

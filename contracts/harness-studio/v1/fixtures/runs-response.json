@@ -1,0 +1,13 @@
+{
+  "workspaceKey": "default",
+  "runs": [
+    {
+      "runId": "run_01",
+      "status": "running",
+      "operation": "chat",
+      "agentId": "scenario_coordinator",
+      "threadId": "thread_01",
+      "startedAt": "2026-05-21T00:00:00Z"
+    }
+  ]
+}

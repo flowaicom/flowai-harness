@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "harness-studio/v1",
+  "workspaceKey": "default",
+  "runId": "eval_01",
+  "seq": 5,
+  "kind": "eval.case.completed",
+  "payload": {
+    "evalId": "eval_01",
+    "caseId": "test_01",
+    "passed": true,
+    "score": 0.91
+  }
+}

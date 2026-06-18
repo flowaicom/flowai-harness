@@ -1,0 +1,1009 @@
+openapi: 3.1.0
+info:
+  title: FlowAI Harness Studio API
+  version: harness-studio/v1
+  description: Shared Studio contract implemented by Python, TypeScript, and Enterprise FlowAI Harness servers.
+servers:
+  - url: http://localhost:4111
+paths:
+  /api/status:
+    get:
+      operationId: getStatus
+      summary: Discover Studio API version and implementation status.
+      responses:
+        "200":
+          description: Status response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+              examples:
+                local:
+                  value:
+                    studioApiVersion: harness-studio/v1
+                    supportedVersions: [harness-studio/v1]
+                    status: ready
+                    implementation:
+                      name: py-flowai-harness
+                      version: 0.1.0
+                      mode: local
+  /api/workspaces:
+    get:
+      operationId: listWorkspaces
+      summary: List workspace runtime bindings.
+      responses:
+        "200":
+          description: Workspace list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkspacesResponse"
+  /api/workspaces/{workspace_key}:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceKey"
+    get:
+      operationId: getWorkspace
+      summary: Get one workspace runtime binding.
+      responses:
+        "200":
+          description: Workspace summary.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkspaceSummary"
+  /api/workspaces/{workspace_key}/runtime:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceKey"
+    get:
+      operationId: getRuntime
+      summary: Inspect the runtime spec for one workspace.
+      responses:
+        "200":
+          description: Runtime summary.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuntimeSummary"
+  /api/runtime:
+    get:
+      operationId: getDefaultRuntime
+      summary: Default-workspace alias for runtime inspection.
+      responses:
+        "200":
+          description: Runtime summary.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuntimeSummary"
+  /api/workspaces/{workspace_key}/capabilities:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceKey"
+    get:
+      operationId: listCapabilities
+      summary: List enabled and unavailable capabilities.
+      responses:
+        "200":
+          description: Capability registry.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CapabilitiesResponse"
+  /api/workspaces/{workspace_key}/agents:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceKey"
+    get:
+      operationId: listAgents
+      summary: List runtime agents.
+      responses:
+        "200":
+          description: Agent list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentsResponse"
+  /api/agents:
+    get:
+      operationId: listDefaultAgents
+      summary: Default-workspace alias for listing agents.
+      responses:
+        "200":
+          description: Agent list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentsResponse"
+  /api/workspaces/{workspace_key}/agents/{agent_id}:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceKey"
+      - $ref: "#/components/parameters/AgentId"
+    get:
+      operationId: getAgent
+      summary: Get one runtime agent.
+      responses:
+        "200":
+          description: Agent summary.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentSummary"
+  /api/workspaces/{workspace_key}/agents/{agent_id}/stream:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceKey"
+      - $ref: "#/components/parameters/AgentId"
+    post:
+      operationId: streamAgent
+      summary: Run chat/query against an agent and stream events.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentStreamRequest"
+      responses:
+        "200":
+          description: SSE stream of Studio events.
+          content:
+            text/event-stream:
+              schema:
+                $ref: "#/components/schemas/StudioEvent"
+  /api/workspaces/{workspace_key}/threads:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceKey"
+    get:
+      operationId: listThreads
+      summary: List Studio thread metadata for a workspace.
+      responses:
+        "200":
+          description: Thread list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ThreadsResponse"
+  /api/workspaces/{workspace_key}/threads/{thread_id}:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceKey"
+      - name: thread_id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getThread
+      summary: Get one Studio thread metadata row.
+      responses:
+        "200":
+          description: Thread metadata.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ThreadResponse"
+  /api/workspaces/{workspace_key}/threads/{thread_id}/messages:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceKey"
+      - name: thread_id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: listThreadMessages
+      summary: List Studio-captured user and assistant messages for a thread.
+      responses:
+        "200":
+          description: Thread messages.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessagesResponse"
+  /api/agents/{agent_id}/stream:
+    parameters:
+      - $ref: "#/components/parameters/AgentId"
+    post:
+      operationId: streamDefaultAgent
+      summary: Default-workspace alias for agent streaming.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentStreamRequest"
+      responses:
+        "200":
+          description: SSE stream of Studio events.
+          content:
+            text/event-stream:
+              schema:
+                $ref: "#/components/schemas/StudioEvent"
+  /api/workspaces/{workspace_key}/tools:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceKey"
+    get:
+      operationId: listTools
+      summary: List direct tools and toolkit-provided tools.
+      responses:
+        "200":
+          description: Tool list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ToolsResponse"
+  /api/workspaces/{workspace_key}/toolkits:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceKey"
+    get:
+      operationId: listToolkits
+      summary: List toolkits.
+      responses:
+        "200":
+          description: Toolkit list.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [workspaceKey, toolkits]
+                properties:
+                  workspaceKey:
+                    type: string
+                  toolkits:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ToolkitSummary"
+  /api/workspaces/{workspace_key}/approvals:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceKey"
+    get:
+      operationId: listApprovals
+      summary: List pending and recent approvals.
+      responses:
+        "200":
+          description: Approval list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApprovalsResponse"
+  /api/workspaces/{workspace_key}/approvals/{approval_id}/decision:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceKey"
+      - name: approval_id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: decideApproval
+      deprecated: true
+      summary: Approve or reject a pending approval.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision:
+                  enum: [approved, rejected]
+                reason:
+                  type: string
+      responses:
+        "200":
+          description: Updated approval.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApprovalSummary"
+  /api/workspaces/{workspace_key}/approvals/{approval_id}/respond:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceKey"
+      - name: approval_id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: respondToApproval
+      summary: Respond to a pending approval.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [outcome]
+              properties:
+                outcome:
+                  enum: [approve, reject, revise, approved, rejected]
+                feedback:
+                  type: string
+                reason:
+                  type: string
+                partial:
+                  type: object
+                  additionalProperties: true
+      responses:
+        "200":
+          description: Updated approval.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApprovalSummary"
+  /api/workspaces/{workspace_key}/runs:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceKey"
+    get:
+      operationId: listRuns
+      summary: List runtime runs.
+      responses:
+        "200":
+          description: Run list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunsResponse"
+  /api/workspaces/{workspace_key}/runs/{run_id}:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceKey"
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getRun
+      summary: Get one run summary.
+      responses:
+        "200":
+          description: Run summary.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunSummary"
+  /api/workspaces/{workspace_key}/runs/{run_id}/stream:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceKey"
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: streamRun
+      summary: Replay or subscribe to run events.
+      responses:
+        "200":
+          description: SSE run event stream.
+          content:
+            text/event-stream:
+              schema:
+                $ref: "#/components/schemas/StudioEvent"
+  /api/workspaces/{workspace_key}/data/sources:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceKey"
+    get:
+      operationId: listDataSources
+      summary: List data sources for a workspace.
+      responses:
+        "200":
+          description: Data source list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataResponse"
+  /api/workspaces/{workspace_key}/data/profile/estimate:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceKey"
+    post:
+      operationId: estimateProfile
+      summary: Estimate profile work for a resource.
+      responses:
+        "200":
+          description: Profile estimate.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileEstimate"
+  /api/workspaces/{workspace_key}/data/profile/table:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceKey"
+    post:
+      operationId: profileTable
+      summary: Profile a table or file and stream events.
+      responses:
+        "200":
+          description: SSE profile event stream.
+          content:
+            text/event-stream:
+              schema:
+                $ref: "#/components/schemas/StudioEvent"
+  /api/workspaces/{workspace_key}/data/profile/database:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceKey"
+    post:
+      operationId: profileDatabase
+      summary: Profile a database or resource and stream events.
+      responses:
+        "200":
+          description: SSE profile event stream.
+          content:
+            text/event-stream:
+              schema:
+                $ref: "#/components/schemas/StudioEvent"
+  /api/workspaces/{workspace_key}/tests:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceKey"
+    get:
+      operationId: listTests
+      summary: List tests.
+      responses:
+        "200":
+          description: Test list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TestsResponse"
+    post:
+      operationId: createTest
+      summary: Create a test case.
+      responses:
+        "201":
+          description: Created test case.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TestCaseSummary"
+  /api/workspaces/{workspace_key}/evals:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceKey"
+    get:
+      operationId: listEvals
+      summary: List eval runs.
+      responses:
+        "200":
+          description: Eval list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvalsResponse"
+    post:
+      operationId: createEval
+      summary: Create or start an eval run.
+      responses:
+        "201":
+          description: Created eval run.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvalSummary"
+  /api/workspaces/{workspace_key}/evals/{eval_id}/stream:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceKey"
+      - name: eval_id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: streamEval
+      summary: Replay or subscribe to eval events.
+      responses:
+        "200":
+          description: SSE eval event stream.
+          content:
+            text/event-stream:
+              schema:
+                $ref: "#/components/schemas/StudioEvent"
+components:
+  responses:
+    ErrorResponse:
+      description: Standard error envelope.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+  parameters:
+    WorkspaceKey:
+      name: workspace_key
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Stable Studio-visible workspace key.
+    AgentId:
+      name: agent_id
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    StatusResponse:
+      type: object
+      required: [studioApiVersion, supportedVersions, status, implementation]
+      properties:
+        studioApiVersion:
+          const: harness-studio/v1
+        supportedVersions:
+          type: array
+          minItems: 1
+          items:
+            type: string
+        status:
+          enum: [ready, starting, degraded, error]
+        implementation:
+          $ref: "#/components/schemas/ImplementationSummary"
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, retryable]
+          properties:
+            code:
+              type: string
+              description: Stable machine-readable error code.
+            message:
+              type: string
+              description: Safe display message.
+            retryable:
+              type: boolean
+            details:
+              type: object
+              additionalProperties: true
+    ImplementationSummary:
+      type: object
+      required: [name, version, mode]
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        mode:
+          enum: [local, enterprise, test]
+    WorkspacesResponse:
+      type: object
+      required: [defaultWorkspaceKey, workspaces]
+      properties:
+        defaultWorkspaceKey:
+          type: string
+        workspaces:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkspaceSummary"
+    WorkspaceSummary:
+      type: object
+      required: [workspaceKey, displayName, status, capabilities]
+      properties:
+        workspaceKey:
+          type: string
+        displayName:
+          type: string
+        description:
+          type: string
+        status:
+          enum: [ready, starting, degraded, error]
+        resourceId:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        capabilities:
+          type: array
+          items:
+            type: string
+    RuntimeSummary:
+      type: object
+      required: [workspaceKey, tenant, agents, providers]
+      properties:
+        workspaceKey:
+          type: string
+        tenant:
+          type: object
+          required: [tenantId, version]
+          properties:
+            tenantId:
+              type: string
+            version:
+              type: string
+        agents:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgentSummary"
+        providers:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProviderSummary"
+        plans:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        references:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    ProviderSummary:
+      type: object
+      required: [name, configured]
+      properties:
+        name:
+          type: string
+        configured:
+          type: boolean
+        credential:
+          type: object
+          properties:
+            kind:
+              enum: [env, secretRef, serverManaged, missing]
+            ref:
+              type: string
+    CapabilitiesResponse:
+      type: object
+      required: [workspaceKey, capabilities]
+      properties:
+        workspaceKey:
+          type: string
+        capabilities:
+          type: array
+          items:
+            $ref: "#/components/schemas/CapabilitySummary"
+    CapabilitySummary:
+      type: object
+      required: [id, enabled, scope]
+      properties:
+        id:
+          type: string
+        enabled:
+          type: boolean
+        scope:
+          enum: [local, enterprise]
+        reason:
+          type: string
+        requirements:
+          type: array
+          items:
+            type: string
+    AgentsResponse:
+      type: object
+      required: [workspaceKey, agents]
+      properties:
+        workspaceKey:
+          type: string
+        agents:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgentSummary"
+    AgentSummary:
+      type: object
+      required: [agentId, name, role, model, stateful, entrypoint]
+      properties:
+        agentId:
+          type: string
+        name:
+          type: string
+        role:
+          enum: [coordinator, planner, executor, specialist, custom]
+        model:
+          type: string
+        stateful:
+          type: boolean
+        entrypoint:
+          type: boolean
+        toolkits:
+          type: array
+          items:
+            type: string
+        tools:
+          type: array
+          items:
+            type: string
+        routes:
+          type: array
+          items:
+            type: string
+    AgentStreamRequest:
+      type: object
+      properties:
+        prompt:
+          type: string
+        message:
+          type: string
+        messages:
+          type: array
+          description: Legacy chat history payload; only the final user message is used.
+          items:
+            type: object
+            additionalProperties: true
+        threadId:
+          type: string
+        input:
+          type: object
+          additionalProperties: true
+        metadata:
+          type: object
+          additionalProperties: true
+    ThreadsResponse:
+      type: object
+      required: [workspaceKey, threads]
+      properties:
+        workspaceKey:
+          type: string
+        threads:
+          type: array
+          items:
+            $ref: "#/components/schemas/ThreadSummary"
+    ThreadResponse:
+      type: object
+      required: [workspaceKey, thread]
+      properties:
+        workspaceKey:
+          type: string
+        thread:
+          $ref: "#/components/schemas/ThreadSummary"
+    ThreadSummary:
+      type: object
+      required: [threadId, title, createdAt, updatedAt]
+      properties:
+        threadId:
+          type: string
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    MessagesResponse:
+      type: object
+      required: [workspaceKey, threadId, messages]
+      properties:
+        workspaceKey:
+          type: string
+        threadId:
+          type: string
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ThreadMessage"
+    ThreadMessage:
+      type: object
+      required: [messageId, threadId, role, content, metadata, createdAt]
+      properties:
+        messageId:
+          type: string
+        threadId:
+          type: string
+        role:
+          enum: [user, assistant, system, tool]
+        content:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        createdAt:
+          type: string
+          format: date-time
+    ToolsResponse:
+      type: object
+      required: [workspaceKey, tools]
+      properties:
+        workspaceKey:
+          type: string
+        tools:
+          type: array
+          items:
+            $ref: "#/components/schemas/ToolSummary"
+    ToolSummary:
+      type: object
+      required: [toolId, name, origin, approval]
+      properties:
+        toolId:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        origin:
+          enum: [runtime, toolkit, host]
+        toolkit:
+          type: string
+        approval:
+          enum: [never, always, dynamic]
+        inputSchema:
+          type: object
+          additionalProperties: true
+        outputSchema:
+          type: object
+          additionalProperties: true
+    ToolkitSummary:
+      type: object
+      required: [toolkitId, name, enabled]
+      properties:
+        toolkitId:
+          type: string
+        name:
+          type: string
+        enabled:
+          type: boolean
+        tools:
+          type: array
+          items:
+            type: string
+    ApprovalsResponse:
+      type: object
+      required: [workspaceKey, approvals]
+      properties:
+        workspaceKey:
+          type: string
+        approvals:
+          type: array
+          items:
+            $ref: "#/components/schemas/ApprovalSummary"
+    ApprovalSummary:
+      type: object
+      required: [approvalId, status, kind, createdAt]
+      properties:
+        approvalId:
+          type: string
+        status:
+          enum: [pending, approved, rejected, expired]
+        kind:
+          enum: [tool, plan, action, custom]
+        agentId:
+          type: string
+        runId:
+          type: string
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        payload:
+          type: object
+          additionalProperties: true
+    RunsResponse:
+      type: object
+      required: [workspaceKey, runs]
+      properties:
+        workspaceKey:
+          type: string
+        runs:
+          type: array
+          items:
+            $ref: "#/components/schemas/RunSummary"
+    RunSummary:
+      type: object
+      required: [runId, status, operation, startedAt]
+      properties:
+        runId:
+          type: string
+        status:
+          enum: [queued, running, waiting, completed, failed, cancelled]
+        operation:
+          enum: [chat, tool, profile, eval, ingest, custom]
+        agentId:
+          type: string
+        threadId:
+          type: string
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+    DataResponse:
+      type: object
+      required: [workspaceKey, sources]
+      properties:
+        workspaceKey:
+          type: string
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/DataSourceSummary"
+    DataSourceSummary:
+      type: object
+      required: [sourceId, kind, displayName, status]
+      properties:
+        sourceId:
+          type: string
+        kind:
+          enum: [postgres, sqlite, parquet, csv, warehouse, custom]
+        displayName:
+          type: string
+        status:
+          enum: [configured, profiling, profiled, error]
+        credential:
+          type: object
+          properties:
+            kind:
+              enum: [env, secretRef, serverManaged, none]
+            ref:
+              type: string
+    ProfileEstimate:
+      type: object
+      required: [workspaceKey, estimate]
+      properties:
+        workspaceKey:
+          type: string
+        estimate:
+          type: object
+          properties:
+            tables:
+              type: integer
+            columns:
+              type: integer
+            rowsSampled:
+              type: integer
+            estimatedMs:
+              type: integer
+    TestsResponse:
+      type: object
+      required: [workspaceKey, tests]
+      properties:
+        workspaceKey:
+          type: string
+        tests:
+          type: array
+          items:
+            $ref: "#/components/schemas/TestCaseSummary"
+    TestCaseSummary:
+      type: object
+      required: [testId, name, status]
+      properties:
+        testId:
+          type: string
+        name:
+          type: string
+        status:
+          enum: [draft, ready, disabled]
+        tags:
+          type: array
+          items:
+            type: string
+    EvalsResponse:
+      type: object
+      required: [workspaceKey, evals]
+      properties:
+        workspaceKey:
+          type: string
+        evals:
+          type: array
+          items:
+            $ref: "#/components/schemas/EvalSummary"
+    EvalSummary:
+      type: object
+      required: [evalId, status, mode]
+      properties:
+        evalId:
+          type: string
+        status:
+          enum: [queued, running, completed, failed, cancelled]
+        mode:
+          type: string
+        summary:
+          type: object
+          additionalProperties: true
+    StudioEvent:
+      type: object
+      required: [schemaVersion, workspaceKey, seq, kind, payload]
+      properties:
+        schemaVersion:
+          const: harness-studio/v1
+        workspaceKey:
+          type: string
+        runId:
+          type: string
+        threadId:
+          type: string
+        agentId:
+          type: string
+        seq:
+          type: integer
+          minimum: 0
+        kind:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true

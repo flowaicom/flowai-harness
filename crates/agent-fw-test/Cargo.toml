@@ -1,0 +1,34 @@
+[package]
+name = "agent-fw-test"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Reusable algebraic law test harnesses"
+
+[dependencies]
+agent-fw-core = { workspace = true }
+agent-fw-algebra = { workspace = true }
+agent-fw-agent = { workspace = true }
+agent-fw-tool = { workspace = true }
+agent-fw-catalog = { workspace = true }
+agent-fw-interpreter = { workspace = true }
+agent-fw-plan = { workspace = true }
+agent-fw-resolve = { workspace = true }
+agent-fw-search = { workspace = true }
+agent-fw-eval = { workspace = true, features = ["test-support"] }
+agent-fw-workspace = { workspace = true }
+chrono = { workspace = true }
+rust_decimal = { workspace = true }
+serde = { workspace = true }
+proptest = { workspace = true }
+hegel = { workspace = true }
+tokio = { workspace = true }
+tokio-test = { workspace = true }
+async-trait = { workspace = true }
+serde_json = { workspace = true }
+futures = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+tokio-stream = { workspace = true }

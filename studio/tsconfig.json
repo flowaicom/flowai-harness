@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["bun", "vite/client", "@react-router/node"],
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["./app/*"],
+      "@studio/core": ["./packages/studio-core/src/index.ts"],
+      "@studio/core/*": ["./packages/studio-core/src/*"],
+      "@studio/ui": ["./packages/studio-ui/src/index.ts"],
+      "@studio/ui/*": ["./packages/studio-ui/src/*"],
+      "@studio/ui/styles.css": ["./packages/studio-ui/src/styles.css"],
+      "@studio/features-chat": ["./packages/studio-features-chat/src/index.ts"],
+      "@studio/features-connect": ["./packages/studio-features-connect/src/index.ts"],
+      "@studio/features-tests": ["./packages/studio-features-tests/src/index.ts"],
+      "@studio/features-evals": ["./packages/studio-features-evals/src/index.ts"]
+    },
+    "rootDirs": [".", "./.react-router/types"]
+  },
+  "include": ["**/*.ts", "**/*.tsx", "**/*.d.ts", ".react-router/types/**/*"],
+  "exclude": [
+    "node_modules",
+    "build"
+  ]
+}

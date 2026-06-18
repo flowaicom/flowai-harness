@@ -1,0 +1,42 @@
+{
+  "artifacts": {
+    "target_sqlite_zst": {
+      "sha256": "f8cc6ce378cfa49fb1e573184bb267d8bc4a947d681c4a8322151a8b23ff8b60",
+      "uncompressed_bytes": 4345061376,
+      "url": "https://flowai-public-data.hel1.your-objectstorage.com/inventory-scenario/2026-06/inventory-scenario-v2026-06.target.sqlite.zst"
+    }
+  },
+  "dataset_version": "2026-06",
+  "tables": {
+    "dim_brands": {
+      "rows": 96
+    },
+    "dim_companies": {
+      "rows": 4
+    },
+    "dim_coordinates": {
+      "rows": 130
+    },
+    "dim_inventory": {
+      "rows": 75840
+    },
+    "dim_products": {
+      "rows": 15168
+    },
+    "dim_sales_channels": {
+      "rows": 5
+    },
+    "dim_segments": {
+      "rows": 42
+    },
+    "dim_subsegments": {
+      "rows": 338
+    },
+    "dim_time_periods": {
+      "rows": 26
+    },
+    "fact_scenario": {
+      "rows": 1971840
+    }
+  }
+}

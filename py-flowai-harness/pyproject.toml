@@ -1,0 +1,48 @@
+[build-system]
+requires = ["maturin>=1.7,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "flowai-harness"
+version = "1.0.0a1"
+description = "Python facade for the Flow AI Harness runtime"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "LicenseRef-FlowAI-Private-Preview" }
+authors = [{ name = "Flow AI" }]
+dependencies = [
+    "fastapi>=0.136.1",
+    "pydantic>=2.9.0",
+    "uvicorn>=0.47.0",
+]
+
+[project.urls]
+Repository = "https://github.com/flowaicom/flowai-harness"
+Issues = "https://github.com/flowaicom/flowai-harness/issues"
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "jsonschema>=4.0", "httpx>=0.28", "psycopg[binary]>=3.2"]
+docs = [
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.26",
+    "mike>=2.1",
+]
+
+[project.scripts]
+flowai-harness = "flowai_harness.cli:main"
+
+[tool.maturin]
+manifest-path = "Cargo.toml"
+python-source = "."
+module-name = "flowai_harness._internal"
+features = ["extension-module"]
+include = [{ path = "flowai_harness/studio/static/**/*", format = "wheel" }]
+
+[tool.pytest.ini_options]
+markers = [
+    "e2e: FlowAI harness end-to-end tests",
+    "neon: tests that create temporary Neon branches",
+    "live_llm: tests that call a live model provider",
+    "live_enrichment: tests that call LLM enrichment",
+]

@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 0d1ca9ea75269176481a4718b1cb68b97de8a00c4ed92aaab2f414f0b8a9421d # shrinks to tools = ["draft_plan", "resolveProductSet"]

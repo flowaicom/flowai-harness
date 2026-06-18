@@ -1,0 +1,24 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc ff90b3a311bad0c2cc3cac0e425fcf66f6d911562fc915716c834f0f46b86749 # shrinks to tenant = "0", key = "0", value = TestValue { name: "A", count: 0 }
+cc 86fd1e3bec8dc007408fba63ab0c15699825a90c1f2c1e8f2cb01608fb71428f # shrinks to tenant = "A", key = "a"
+cc 09db10d9b42e09804cc3d3ff32f89c22aa4768118af4355dfa042c01b7e0de7c # shrinks to tenant = "0", key = "A", value = TestValue { name: "a", count: 0 }
+cc 0f18945b7bd5f1d1c1c4d83dd4a0a79b385ee36ecafd0d68db9ae411d8be5c12 # shrinks to key = "0", value = TestValue { name: "A", count: 0 }
+cc 849eed574fea130ac295a5f699412fc3a24302db2136a905bea8591a4b5e1f3d # shrinks to tenant = "A", key = "A", value = TestValue { name: "A", count: 0 }
+cc 60cfa59888ce78a2e29a8cd6d033a1807834cbf31ed2681ad194a689c12877ae # shrinks to tenant = "a", key = "0", value = TestValue { name: "A", count: 0 }, should_set = false
+cc 4a12f97cf4a2b3feebe00198cdad9ff149e64c3b8097d23987a640ebce54e9a3 # shrinks to tenant = "A", key = "A", value = TestValue { name: "A", count: 0 }, ttl = None
+cc b7c3bb71a1861383c5ae5dfed7f2f0c7d5ffa080137fda2e4fb2c24f53656348 # shrinks to tenant = "a", key = "a", v1 = TestValue { name: "a", count: 0 }, v2 = TestValue { name: "a", count: 0 }, ttl = None
+cc 64a519eb96308d4ddfec87ffb3b5d3f8f3f42b273203cbc1654b51e58bcbe7c3 # shrinks to tenant = "0", k1 = "A", k2 = "a", v1 = TestValue { name: "a", count: 0 }, v2 = TestValue { name: "a", count: 0 }, set_k1 = false, set_k2 = false
+cc 43f8b997709dcc9471ac367c4fe4dfa7bbc387f8b5ec83a79b8fa11077347f51 # shrinks to tenant = "A", key = "A"
+cc 3557953ead900ddaef725c65f32800e325a457883515a57487e7b2c2b8da6ced # shrinks to tenant = "a", key = "a", value = TestValue { name: "a", count: 0 }
+cc 57aa2f0c42983e6ad3c304ba63dc4305408a5fe840778605a2cc9b78938ef4c5 # shrinks to key = "a", value = TestValue { name: "a", count: 0 }
+cc 7f3e32e6f308ee38937b51e28126c0ff23e0ba627bcd045b792d2b91ee3ee3aa # shrinks to tenant = "A", key = "A", value = TestValue { name: "a", count: 0 }, should_set = false
+cc ff1b79bef9182c8df2dbfc26e81148dbeaa5cca570395deba1338a36f442e320 # shrinks to tenant = "0", key = "0", value = TestValue { name: "a", count: 0 }, ttl = None
+cc eee4ad78dc0d6f31eb7cae3971567ebc5dc75e74a2c06efd8a015541c25fe9cf # shrinks to tenant = "A", key = "A", value = TestValue { name: "a", count: 0 }
+cc 675b2fa8859b9d6f7b10940f83899ad5dd313096681974f1f8d55855e3a63f03 # shrinks to tenant = "0", key = "a", value = TestValue { name: "A", count: 0 }
+cc dc59ab0b6f5281b69bcd1004a676fd45e0f7259c6c32b7c25d4c127df87b3e6e # shrinks to tenant = "0", k1 = "0", k2 = "0", v1 = TestValue { name: "A", count: 0 }, v2 = TestValue { name: "A", count: 0 }, set_k1 = false, set_k2 = false
+cc 1615ea6da0cf4aa42cde3726bb1145e930541230c2c5a95b32bff4071ddb7a73 # shrinks to tenant = "a", key = "A", v1 = TestValue { name: "a", count: 0 }, v2 = TestValue { name: "a", count: 3 }, ttl = None

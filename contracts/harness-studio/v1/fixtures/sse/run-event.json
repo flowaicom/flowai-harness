@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "harness-studio/v1",
+  "workspaceKey": "default",
+  "runId": "run_01",
+  "threadId": "thread_01",
+  "agentId": "scenario_coordinator",
+  "seq": 6,
+  "kind": "run.completed",
+  "payload": {
+    "status": "completed",
+    "durationMs": 1842,
+    "usage": {
+      "inputTokens": 1200,
+      "outputTokens": 340
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "workspaceKey": "default",
+  "sources": [
+    {
+      "sourceId": "local-parquet",
+      "kind": "parquet",
+      "displayName": "Local parquet sample",
+      "status": "profiled",
+      "credential": {
+        "kind": "none"
+      }
+    },
+    {
+      "sourceId": "warehouse",
+      "kind": "postgres",
+      "displayName": "Customer warehouse",
+      "status": "configured",
+      "credential": {
+        "kind": "secretRef",
+        "ref": "secret://workspace/default/warehouse"
+      }
+    }
+  ]
+}
