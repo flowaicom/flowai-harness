@@ -3,7 +3,7 @@
 This document describes the security posture of the Flow AI Harness
 (`flowai-harness`) and the deployment model it is designed for.
 
-**This is the first (`v1.0.0-alpha.1`) release and is intended for use on the
+**This is the first (`v0.1.0-alpha.1`) release and is intended for use on the
 operator's local machine (loopback) only.** The limitations listed below are
 accepted for this release and tracked for a future release; they are safe to
 operate behind within the loopback model described here, but the servers must

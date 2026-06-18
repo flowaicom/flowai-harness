@@ -21,9 +21,9 @@ lifecycle, built-in data tooling, and execution state.
 For source checkout installs, use the flow below. It builds the local Studio
 UI, packages it into the Python harness, and installs the harness into `.venv`.
 
-Current alpha release: `v1.0.0-alpha.1`.
+Current alpha release: `v0.1.0-alpha.1`.
 
-The Python package version for this tag is `1.0.0a1`, which is the PEP 440 form
+The Python package version for this tag is `0.1.0a1`, which is the PEP 440 form
 of the same prerelease version.
 
 ## Source Checkout Install

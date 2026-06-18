@@ -26,7 +26,7 @@ Run the source checkout install from the repository root first:
 ```
 
 That creates `./.venv`, builds the Studio UI, and installs
-`flowai-harness==1.0.0a1` from this checkout.
+`flowai-harness==0.1.0a1` from this checkout.
 
 ## Quick start
 

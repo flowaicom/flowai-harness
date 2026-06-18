@@ -1,10 +1,10 @@
 # Changelog
 
-## 1.0.0a1 — 2026-06-09
+## 0.1.0a1 — 2026-06-18
 
 !!! warning "Alpha"
-    `1.0.0a1` is the Python package version for the `v1.0.0-alpha.1` private
-    preview tag. The public API is stable enough to build against, but breaking
+    `0.1.0a1` is the Python package version for the `v0.1.0-alpha.1` public
+    alpha tag. The public API is stable enough to build against, but breaking
     changes are still possible during the alpha cycle.
 
 ### Added

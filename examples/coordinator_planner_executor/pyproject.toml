@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "flowai-coordinator-planner-executor-example"
-version = "1.0.0a1"
+version = "0.1.0a1"
 description = "Coordinator-planner-executor example app for Flow AI Harness"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 license = { text = "LicenseRef-FlowAI-Private-Preview" }
 dependencies = [
-    "flowai-harness==1.0.0a1",
+    "flowai-harness==0.1.0a1",
 ]
 
 [project.optional-dependencies]

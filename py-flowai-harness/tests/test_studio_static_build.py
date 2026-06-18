@@ -22,7 +22,7 @@ def test_build_studio_static_stages_build_client(tmp_path, monkeypatch):
     assets_dir = build_dir / "assets"
     assets_dir.mkdir(parents=True)
     (studio_dir / "package.json").write_text(
-        json.dumps({"name": "flowai-harness-studio", "version": "1.0.0-alpha.1"}),
+        json.dumps({"name": "flowai-harness-studio", "version": "0.1.0-alpha.1"}),
         encoding="utf-8",
     )
     (build_dir / "index.html").write_text(
@@ -57,7 +57,7 @@ def test_build_studio_static_stages_build_client(tmp_path, monkeypatch):
         (destination / "flowai-studio-static-manifest.json").read_text(encoding="utf-8")
     )
     assert staged_manifest["studioPackageName"] == "flowai-harness-studio"
-    assert staged_manifest["studioPackageVersion"] == "1.0.0-alpha.1"
+    assert staged_manifest["studioPackageVersion"] == "0.1.0-alpha.1"
 
 
 def test_build_studio_static_can_skip_install(tmp_path, monkeypatch):

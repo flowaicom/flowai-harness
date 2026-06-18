@@ -45,7 +45,7 @@ dependencies = [
 
 [[package]]
 name = "agent-fw-agent"
-version = "1.0.0-alpha.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "agent-fw-algebra",
  "agent-fw-core",
@@ -68,7 +68,7 @@ dependencies = [
 
 [[package]]
 name = "agent-fw-algebra"
-version = "1.0.0-alpha.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "agent-fw-core",
  "async-trait",
@@ -90,7 +90,7 @@ dependencies = [
 
 [[package]]
 name = "agent-fw-catalog"
-version = "1.0.0-alpha.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "agent-fw-algebra",
  "agent-fw-core",
@@ -109,7 +109,7 @@ dependencies = [
 
 [[package]]
 name = "agent-fw-catalog-index"
-version = "1.0.0-alpha.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "agent-fw-catalog",
  "agent-fw-core",
@@ -128,7 +128,7 @@ dependencies = [
 
 [[package]]
 name = "agent-fw-catalog-tools"
-version = "1.0.0-alpha.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "agent-fw-agent",
  "agent-fw-algebra",
@@ -159,7 +159,7 @@ dependencies = [
 
 [[package]]
 name = "agent-fw-cli"
-version = "1.0.0-alpha.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "agent-fw-algebra",
  "agent-fw-catalog",
@@ -187,7 +187,7 @@ dependencies = [
 
 [[package]]
 name = "agent-fw-core"
-version = "1.0.0-alpha.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "axum-core",
  "bytes",
@@ -204,7 +204,7 @@ dependencies = [
 
 [[package]]
 name = "agent-fw-eval"
-version = "1.0.0-alpha.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "agent-fw-algebra",
  "agent-fw-core",
@@ -226,7 +226,7 @@ dependencies = [
 
 [[package]]
 name = "agent-fw-ingest"
-version = "1.0.0-alpha.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "agent-fw-algebra",
  "agent-fw-catalog",
@@ -254,7 +254,7 @@ dependencies = [
 
 [[package]]
 name = "agent-fw-interpreter"
-version = "1.0.0-alpha.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "aes-gcm",
  "agent-fw-agent",
@@ -294,7 +294,7 @@ dependencies = [
 
 [[package]]
 name = "agent-fw-mcp"
-version = "1.0.0-alpha.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "agent-fw-agent",
  "agent-fw-algebra",
@@ -313,7 +313,7 @@ dependencies = [
 
 [[package]]
 name = "agent-fw-plan"
-version = "1.0.0-alpha.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "agent-fw-algebra",
  "agent-fw-core",
@@ -335,7 +335,7 @@ dependencies = [
 
 [[package]]
 name = "agent-fw-reference"
-version = "1.0.0-alpha.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "agent-fw-algebra",
  "agent-fw-core",
@@ -350,7 +350,7 @@ dependencies = [
 
 [[package]]
 name = "agent-fw-resolve"
-version = "1.0.0-alpha.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "agent-fw-algebra",
  "agent-fw-core",
@@ -370,7 +370,7 @@ dependencies = [
 
 [[package]]
 name = "agent-fw-search"
-version = "1.0.0-alpha.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "agent-fw-core",
  "hegeltest",
@@ -384,7 +384,7 @@ dependencies = [
 
 [[package]]
 name = "agent-fw-test"
-version = "1.0.0-alpha.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "agent-fw-agent",
  "agent-fw-algebra",
@@ -413,7 +413,7 @@ dependencies = [
 
 [[package]]
 name = "agent-fw-tool"
-version = "1.0.0-alpha.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "agent-fw-algebra",
  "agent-fw-core",
@@ -427,7 +427,7 @@ dependencies = [
 
 [[package]]
 name = "agent-fw-tool-macro"
-version = "1.0.0-alpha.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -436,7 +436,7 @@ dependencies = [
 
 [[package]]
 name = "agent-fw-workspace"
-version = "1.0.0-alpha.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "agent-fw-algebra",
  "agent-fw-catalog",
@@ -3128,7 +3128,7 @@ checksum = "8bf7cc16383c4b8d58b9905a8509f02926ce3058053c056376248d958c9df1e8"
 
 [[package]]
 name = "flowai-harness-cli"
-version = "1.0.0-alpha.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "agent-fw-agent",
  "agent-fw-algebra",
@@ -3155,7 +3155,7 @@ dependencies = [
 
 [[package]]
 name = "flowai-harness-python"
-version = "1.0.0-alpha.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "agent-fw-agent",
  "agent-fw-algebra",
@@ -3183,7 +3183,7 @@ dependencies = [
 
 [[package]]
 name = "flowai-runtime"
-version = "1.0.0-alpha.1"
+version = "0.1.0-alpha.1"
 dependencies = [
  "agent-fw-agent",
  "agent-fw-algebra",

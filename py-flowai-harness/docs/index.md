@@ -67,7 +67,7 @@ installs `flowai-harness` into `.venv`. Run the scripts in this guide with
   referenced by your runtime spec, such as `ANTHROPIC_API_KEY`.
 
 !!! warning "Alpha release"
-Version `1.0.0a1` is the Python package version for the `v1.0.0-alpha.1`
+Version `0.1.0a1` is the Python package version for the `v0.1.0-alpha.1`
 alpha tag. The public API is stable enough to build against, but
 breaking changes are still possible during the alpha cycle.
 
