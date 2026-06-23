@@ -720,11 +720,11 @@ pub struct HostToolBinding {
 }
 
 impl HostToolBinding {
-    /// Build a host binding with no per-tool approval override.
+    /// Build a host binding with approval required by default.
     pub fn new(handler: Arc<dyn ToolHandler>) -> Self {
         Self {
             handler,
-            approval: None,
+            approval: Some(ApprovalRule::Always),
         }
     }
 
@@ -1960,6 +1960,35 @@ mod tests {
         assert_eq!(spec.approval_policies.plans, ApprovalRule::Always);
         assert_eq!(spec.approval_policies.tools, ApprovalRule::Never);
         assert!(spec.providers.is_empty());
+    }
+
+    #[test]
+    fn host_tool_binding_defaults_to_approval_required() {
+        struct TestHandler;
+
+        #[async_trait::async_trait]
+        impl agent_fw_agent::ToolHandler for TestHandler {
+            fn definition(&self) -> agent_fw_agent::ToolDefinition {
+                agent_fw_agent::ToolDefinition {
+                    name: "host_tool".to_string(),
+                    description: "Host tool".to_string(),
+                    input_schema: serde_json::json!({"type": "object"}),
+                }
+            }
+
+            async fn handle(
+                &self,
+                tool_use_id: &str,
+                _input: serde_json::Value,
+                _env: &agent_fw_tool::ToolEnvironment,
+            ) -> agent_fw_agent::ToolCallResult {
+                agent_fw_agent::ToolCallResult::success(tool_use_id, serde_json::json!({}))
+            }
+        }
+
+        let binding = HostToolBinding::new(Arc::new(TestHandler));
+
+        assert_eq!(binding.approval, Some(ApprovalRule::Always));
     }
 
     #[test]

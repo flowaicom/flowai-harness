@@ -3,7 +3,7 @@ from flowai_harness.mcp import create_mcp_runtime
 
 
 def test_list_mcp_tools_returns_python_custom_tool_schema():
-    @define_tool("echo", {"message": str}, description="Echo message")
+    @define_tool("echo", {"message": str}, description="Echo message", approval="never")
     def echo(args, ctx):
         return {"message": args["message"]}
 

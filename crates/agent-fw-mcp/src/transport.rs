@@ -3,7 +3,13 @@ use std::{
     sync::Arc,
 };
 
-use axum::Router;
+use axum::{
+    extract::{Request, State},
+    http::{header, HeaderMap, StatusCode},
+    middleware::{self, Next},
+    response::{IntoResponse, Response},
+    Router,
+};
 use rmcp::{
     transport::{
         io::stdio,
@@ -16,6 +22,8 @@ use rmcp::{
 use tokio::net::TcpListener;
 
 use crate::{McpError, McpHttpServerConfig, McpToolServer};
+
+const MCP_AUTH_HEADER: &str = "x-flowai-mcp-token";
 
 /// Bound Streamable HTTP MCP server.
 pub struct McpBoundHttpServer {
@@ -57,6 +65,13 @@ impl McpToolServer {
         if !config.endpoint_path.starts_with('/') {
             return Err(McpError::InvalidEndpointPath(config.endpoint_path));
         }
+        let auth_token = config
+            .auth_token
+            .as_deref()
+            .map(str::trim)
+            .filter(|token| !token.is_empty())
+            .ok_or(McpError::MissingHttpAuthToken)?
+            .to_string();
 
         let listener = TcpListener::bind(config.bind_addr)
             .await
@@ -73,7 +88,12 @@ impl McpToolServer {
                 Arc::new(LocalSessionManager::default()),
                 rmcp_config,
             );
-        let router = Router::new().nest_service(&config.endpoint_path, service);
+        let router = Router::new()
+            .nest_service(&config.endpoint_path, service)
+            .layer(middleware::from_fn_with_state(
+                auth_token,
+                require_mcp_authentication,
+            ));
 
         Ok(McpBoundHttpServer {
             listener,
@@ -97,6 +117,49 @@ impl McpToolServer {
         running.waiting().await.map_err(McpError::StdioJoin)?;
         Ok(())
     }
+}
+
+async fn require_mcp_authentication(
+    State(expected_token): State<String>,
+    request: Request,
+    next: Next,
+) -> Response {
+    if has_valid_mcp_token(request.headers(), &expected_token) {
+        return next.run(request).await;
+    }
+    (
+        StatusCode::UNAUTHORIZED,
+        [(header::WWW_AUTHENTICATE, "Bearer")],
+        "MCP Streamable HTTP authentication is required",
+    )
+        .into_response()
+}
+
+fn has_valid_mcp_token(headers: &HeaderMap, expected_token: &str) -> bool {
+    let supplied = headers
+        .get(MCP_AUTH_HEADER)
+        .and_then(|value| value.to_str().ok())
+        .or_else(|| {
+            headers
+                .get(header::AUTHORIZATION)
+                .and_then(|value| value.to_str().ok())
+                .and_then(|value| {
+                    let (scheme, token) = value.split_once(' ')?;
+                    scheme.eq_ignore_ascii_case("bearer").then_some(token)
+                })
+        });
+    supplied.is_some_and(|token| constant_time_eq(token.as_bytes(), expected_token.as_bytes()))
+}
+
+fn constant_time_eq(left: &[u8], right: &[u8]) -> bool {
+    if left.len() != right.len() {
+        return false;
+    }
+    let diff = left
+        .iter()
+        .zip(right.iter())
+        .fold(0_u8, |acc, (left, right)| acc | (left ^ right));
+    diff == 0
 }
 
 fn streamable_http_config(

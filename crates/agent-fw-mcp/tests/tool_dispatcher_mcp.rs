@@ -162,7 +162,10 @@ async fn string_result_maps_to_mcp_text_content() {
     );
     let server = McpToolServer::new(dispatcher, env(), config());
 
-    let result = server.call_mcp_tool("echo", json!({})).await.unwrap();
+    let result = server
+        .call_mcp_tool("echo", json!({"text": "hello"}))
+        .await
+        .unwrap();
 
     assert_eq!(first_text(&result), "hello");
     assert_eq!(result.structured_content, None);
@@ -178,7 +181,10 @@ async fn json_result_maps_to_structured_content_with_serialized_text() {
     );
     let server = McpToolServer::new(dispatcher, env(), config());
 
-    let result = server.call_mcp_tool("json", json!({})).await.unwrap();
+    let result = server
+        .call_mcp_tool("json", json!({"text": "rows"}))
+        .await
+        .unwrap();
 
     assert_eq!(result.structured_content, Some(payload.clone()));
     assert_eq!(
@@ -204,10 +210,30 @@ async fn tool_error_result_maps_to_mcp_error_semantics() {
     );
     let server = McpToolServer::new(dispatcher, env(), config());
 
-    let result = server.call_mcp_tool("guarded", json!({})).await.unwrap();
+    let result = server
+        .call_mcp_tool("guarded", json!({"text": "blocked"}))
+        .await
+        .unwrap();
 
     assert_eq!(result.is_error, Some(true));
     assert_eq!(result.structured_content, Some(payload));
+}
+
+#[tokio::test]
+async fn call_tool_rejects_arguments_that_do_not_match_schema() {
+    let dispatcher = Arc::new(
+        FakeDispatcher::with_definitions(vec![tool("echo", "Echo text")])
+            .with_result("echo", ToolCallResult::success("ignored", json!("ok"))),
+    );
+    let server = McpToolServer::new(dispatcher.clone(), env(), config());
+
+    let error = server
+        .call_mcp_tool("echo", json!({"text": 42}))
+        .await
+        .unwrap_err();
+
+    assert!(error.message.contains("do not match schema"));
+    assert!(dispatcher.calls.lock().unwrap().is_empty());
 }
 
 #[tokio::test]
@@ -241,7 +267,10 @@ async fn timeout_returns_call_error_containing_tool_name() {
         },
     );
 
-    let error = server.call_mcp_tool("slow", json!({})).await.unwrap_err();
+    let error = server
+        .call_mcp_tool("slow", json!({"text": "wait"}))
+        .await
+        .unwrap_err();
 
     assert!(error.message.contains("slow"));
     assert!(error.message.contains("timed out"));

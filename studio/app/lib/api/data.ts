@@ -42,7 +42,7 @@ import type { Result } from "~/lib/domain/result";
 import { err, isOk, ok } from "~/lib/domain/result";
 import { getFlowAIStudioConfig } from "~/lib/studio-config/flowai-config";
 import type { ApiError } from "./client";
-import { del, get, getApiConfig, post, put } from "./client";
+import { del, get, getApiConfig, getApiRequestHeaders, post, put } from "./client";
 import { DataReadinessSchema, ImportStageSchema } from "./schemas";
 import type { JsonSSEHandlers } from "./sse";
 import { readJsonSSEStream, startJsonSSEStream } from "./sse";
@@ -460,13 +460,12 @@ export async function startImport(
   try {
     const response = await fetch(url, {
       method: "POST",
-      headers: {
-        // Do NOT set Content-Type — browser sets it with boundary for multipart
-        ...Object.fromEntries(
-          Object.entries(apiConfig.headers).filter(([k]) => k.toLowerCase() !== "content-type")
-        ),
-        Accept: "text/event-stream",
-      },
+      // Do NOT set Content-Type — browser sets it with boundary for multipart.
+      headers: Object.fromEntries(
+        Object.entries(getApiRequestHeaders({ Accept: "text/event-stream" })).filter(
+          ([key]) => key.toLowerCase() !== "content-type"
+        )
+      ),
       body: formData,
       signal: controller.signal,
     });

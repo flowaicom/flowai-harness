@@ -8,6 +8,7 @@
 
 import type { Result } from "~/lib/domain/result";
 import { err, ok } from "~/lib/domain/result";
+import { getFlowAIStudioConfig } from "~/lib/studio-config/flowai-config";
 
 // ============================================================================
 // Error Types
@@ -128,6 +129,24 @@ export const setWorkspaceHeader = (workspaceId: string): void => {
  */
 export const getApiConfig = (): ApiConfig => config;
 
+const normalizeHeaders = (headers?: HeadersInit): Record<string, string> => {
+  if (headers === undefined) {
+    return {};
+  }
+  return Object.fromEntries(new Headers(headers).entries());
+};
+
+const studioAuthHeaders = (): Record<string, string> => {
+  const token = getFlowAIStudioConfig().studioAuthToken;
+  return token ? { "X-FlowAI-Studio-Token": token } : {};
+};
+
+export const getApiRequestHeaders = (headers?: HeadersInit): Record<string, string> => ({
+  ...config.headers,
+  ...studioAuthHeaders(),
+  ...normalizeHeaders(headers),
+});
+
 // ============================================================================
 // Fetch Wrapper
 // ============================================================================
@@ -147,10 +166,7 @@ export const apiFetch = async <T>(
   try {
     const response = await fetch(url, {
       ...options,
-      headers: {
-        ...config.headers,
-        ...options.headers,
-      },
+      headers: getApiRequestHeaders(options.headers),
       signal: options.signal ?? controller.signal,
     });
 

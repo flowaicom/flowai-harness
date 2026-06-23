@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import asyncio
+import hmac
 import json
+import secrets
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
+from urllib.parse import urlsplit
 from uuid import uuid4
 
 import uvicorn
@@ -34,6 +37,15 @@ from flowai_harness.studio.sse import (
 )
 from flowai_harness.studio.store import StudioStore
 
+STUDIO_AUTH_HEADER = "x-flowai-studio-token"
+STUDIO_ALLOWED_ORIGINS = (
+    "http://127.0.0.1:3000",
+    "http://localhost:3000",
+    "http://127.0.0.1:4111",
+    "http://localhost:4111",
+)
+UNSAFE_HTTP_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
+
 
 @dataclass(frozen=True)
 class StudioApiError(Exception):
@@ -57,10 +69,13 @@ def create_studio_app(
     serve_studio: bool = True,
     store: StudioStore | None = None,
     store_path: str | Path | None = ".flowai/studio.db",
+    auth_token: str | None = None,
+    allowed_origins: tuple[str, ...] = STUDIO_ALLOWED_ORIGINS,
 ) -> FastAPI:
     """Create the FlowAI Harness Studio FastAPI application."""
 
     studio_store = store or StudioStore(store_path)
+    studio_auth_token = _studio_auth_token(auth_token)
     api = FastAPI(
         title="FlowAI Harness Studio API",
         version=STUDIO_API_VERSION,
@@ -71,28 +86,45 @@ def create_studio_app(
     api.state.flowai_app = app
     api.state.serve_studio = serve_studio
     api.state.studio_store = studio_store
+    api.state.studio_auth_token = studio_auth_token
     active_chat_runs: dict[tuple[str, str], _ActiveChatRun] = {}
     api.state.active_chat_runs = active_chat_runs
     api.add_middleware(
         CORSMiddleware,
-        allow_origins=[
-            "http://127.0.0.1:3000",
-            "http://localhost:3000",
-            "http://127.0.0.1:4111",
-            "http://localhost:4111",
-        ],
+        allow_origins=list(allowed_origins),
         allow_methods=["*"],
-        allow_headers=["*"],
+        allow_headers=["*", STUDIO_AUTH_HEADER, "authorization"],
     )
 
     @api.middleware("http")
-    async def _csp_report_only(_request: Request, call_next):
+    async def _studio_api_security(request: Request, call_next):
+        if request.url.path.startswith("/api/") or request.url.path == "/api":
+            if request.method != "OPTIONS":
+                if not _has_valid_studio_token(request, studio_auth_token):
+                    return _error_response(
+                        401,
+                        code="studio.unauthorized",
+                        message="Studio API authentication is required.",
+                    )
+                if request.method in UNSAFE_HTTP_METHODS and not _has_allowed_origin(
+                    request,
+                    allowed_origins,
+                ):
+                    return _error_response(
+                        403,
+                        code="studio.origin_forbidden",
+                        message="Studio API request origin is not allowed.",
+                    )
+        return await call_next(request)
+
+    @api.middleware("http")
+    async def _csp_report_only(request: Request, call_next):
         # Content-Security-Policy-Report-Only: never blocks, never alters
         # execution. Violations are logged to the browser console only (no
         # report endpoint is configured, so no network egress). This collects
         # the violation set needed to switch on an *enforced* CSP with zero
         # risk in a later release. See SECURITY.md.
-        response = await call_next(_request)
+        response = await call_next(request)
         response.headers["Content-Security-Policy-Report-Only"] = (
             "default-src 'self'; "
             "script-src 'self'; "
@@ -129,7 +161,7 @@ def create_studio_app(
     @api.get("/__flowai_config.js", include_in_schema=False)
     async def flowai_config() -> Response:
         return Response(
-            app.config_js(),
+            app.config_js(studio_auth_token=studio_auth_token),
             media_type="application/javascript; charset=utf-8",
             headers={"Cache-Control": "no-store"},
         )
@@ -1194,6 +1226,8 @@ def create_studio_server(
     serve_studio: bool = True,
     store: StudioStore | None = None,
     store_path: str | Path | None = ".flowai/studio.db",
+    auth_token: str | None = None,
+    allowed_origins: tuple[str, ...] = STUDIO_ALLOWED_ORIGINS,
 ) -> FastAPI:
     """Backward-compatible alias for the FastAPI app factory."""
 
@@ -1202,6 +1236,8 @@ def create_studio_server(
         serve_studio=serve_studio,
         store=store,
         store_path=store_path,
+        auth_token=auth_token,
+        allowed_origins=allowed_origins,
     )
 
 
@@ -1211,13 +1247,53 @@ def run_studio_server(
     host: str = "127.0.0.1",
     port: int = 4111,
     serve_studio: bool = True,
+    auth_token: str | None = None,
 ) -> None:
     """Run the local Harness Studio FastAPI app with Uvicorn."""
 
-    api = create_studio_app(app, serve_studio=serve_studio)
+    api = create_studio_app(app, serve_studio=serve_studio, auth_token=auth_token)
     if not serve_studio:
         print("Studio static UI serving disabled; API routes remain available.")
     uvicorn.run(api, host=host, port=port)
+
+
+def _studio_auth_token(auth_token: str | None) -> str:
+    if auth_token is None:
+        return secrets.token_urlsafe(32)
+    token = auth_token.strip()
+    if not token:
+        raise ValueError("Studio API auth_token must be a non-empty string")
+    return token
+
+
+def _has_valid_studio_token(request: Request, expected_token: str) -> bool:
+    supplied = request.headers.get(STUDIO_AUTH_HEADER)
+    authorization = request.headers.get("authorization")
+    if supplied is None and authorization:
+        scheme, _, value = authorization.partition(" ")
+        if scheme.lower() == "bearer" and value:
+            supplied = value
+    return supplied is not None and hmac.compare_digest(supplied, expected_token)
+
+
+def _has_allowed_origin(request: Request, allowed_origins: tuple[str, ...]) -> bool:
+    source = request.headers.get("origin")
+    if source is None:
+        referer = request.headers.get("referer")
+        if referer:
+            parsed = urlsplit(referer)
+            if parsed.scheme and parsed.netloc:
+                source = f"{parsed.scheme}://{parsed.netloc}"
+    if source is None:
+        return True
+    if source == "null":
+        return False
+    if source in allowed_origins:
+        return True
+    host = request.headers.get("host")
+    if not host:
+        return False
+    return source == f"{request.url.scheme}://{host}"
 
 
 def _studio_static_dir() -> Path:

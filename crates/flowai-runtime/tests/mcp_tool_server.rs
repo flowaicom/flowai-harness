@@ -163,7 +163,7 @@ async fn runtime_mcp_lists_host_tool() {
 
 #[tokio::test]
 async fn runtime_mcp_calls_host_tool_with_json_arguments() {
-    let server = runtime_with_echo_tool(None)
+    let server = runtime_with_echo_tool(Some(ApprovalRule::Never))
         .mcp_tool_server(RuntimeMcpConfig::new("mcp"))
         .expect("mcp server");
 
@@ -288,6 +288,7 @@ async fn runtime_mcp_http_streamable_http_lists_runtime_tools() {
             endpoint_path: "/mcp".to_string(),
             allowed_origins: vec!["http://localhost:3000".to_string()],
             require_origin: true,
+            auth_token: Some("test-mcp-token".to_string()),
         })
         .await
         .unwrap();
@@ -298,6 +299,7 @@ async fn runtime_mcp_http_streamable_http_lists_runtime_tools() {
     let initialize = client
         .post(&endpoint)
         .header("Origin", "http://localhost:3000")
+        .header("X-FlowAI-MCP-Token", "test-mcp-token")
         .header("Accept", "application/json, text/event-stream")
         .json(&json!({
             "jsonrpc": "2.0",
@@ -317,6 +319,7 @@ async fn runtime_mcp_http_streamable_http_lists_runtime_tools() {
     let tools = client
         .post(&endpoint)
         .header("Origin", "http://localhost:3000")
+        .header("X-FlowAI-MCP-Token", "test-mcp-token")
         .header("Accept", "application/json, text/event-stream")
         .json(&json!({
             "jsonrpc": "2.0",

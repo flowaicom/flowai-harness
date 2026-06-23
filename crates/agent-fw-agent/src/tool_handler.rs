@@ -44,12 +44,16 @@
 //!   one definition per registered handler, matching `handler.definition()`.
 
 use async_trait::async_trait;
+use jsonschema::{Draft, JSONSchema};
 use std::collections::HashMap;
 use std::sync::Arc;
 
 use agent_fw_tool::ToolEnvironment;
 
 use crate::{ToolCallResult, ToolDefinition, ToolDispatcher};
+
+const TOOL_INPUT_SCHEMA_DRAFT: Draft = Draft::Draft202012;
+const MAX_TOOL_INPUT_BYTES: usize = 64 * 1024;
 
 // ─── ToolHandler ────────────────────────────────────────────────────────
 
@@ -551,11 +555,20 @@ impl ToolDispatcher for ComposedDispatcher {
     ) -> ToolCallResult {
         match self.handlers.get(tool_name) {
             Some(handler) => {
+                if let Err(message) = validate_tool_input(tool_name, &handler.definition(), &input)
+                {
+                    return ToolCallResult::error(tool_use_id, message);
+                }
                 let scoped_env = self.env.with_tool_call_id(tool_use_id);
                 handler.handle(tool_use_id, input, &scoped_env).await
             }
             None => match self.latent_handlers.get(tool_name) {
                 Some(handler) => {
+                    if let Err(message) =
+                        validate_tool_input(tool_name, &handler.definition(), &input)
+                    {
+                        return ToolCallResult::error(tool_use_id, message);
+                    }
                     let scoped_env = self.env.with_tool_call_id(tool_use_id);
                     handler.handle(tool_use_id, input, &scoped_env).await
                 }
@@ -589,6 +602,37 @@ impl ToolDispatcher for ComposedDispatcher {
             collisions: self.collisions.clone(),
         }))
     }
+}
+
+fn validate_tool_input(
+    tool_name: &str,
+    definition: &ToolDefinition,
+    input: &serde_json::Value,
+) -> Result<(), String> {
+    let encoded = serde_json::to_vec(input)
+        .map_err(|err| format!("Tool `{tool_name}` input could not be encoded: {err}"))?;
+    if encoded.len() > MAX_TOOL_INPUT_BYTES {
+        return Err(format!(
+            "Tool `{tool_name}` input exceeds maximum size of {MAX_TOOL_INPUT_BYTES} bytes"
+        ));
+    }
+    if !input.is_object() {
+        return Err(format!("Tool `{tool_name}` input must be a JSON object"));
+    }
+    let compiled = JSONSchema::options()
+        .with_draft(TOOL_INPUT_SCHEMA_DRAFT)
+        .compile(&definition.input_schema)
+        .map_err(|err| format!("Tool `{tool_name}` input schema is invalid: {err}"))?;
+    if let Err(errors) = compiled.validate(input) {
+        let messages = errors
+            .map(|error| error.to_string())
+            .collect::<Vec<_>>()
+            .join("; ");
+        return Err(format!(
+            "Tool `{tool_name}` input does not match its schema: {messages}"
+        ));
+    }
+    Ok(())
 }
 
 // ─── ToolHandler for Arc<dyn ToolHandler> ─────────────────────────────
@@ -1081,6 +1125,39 @@ mod tests {
             .as_str()
             .unwrap()
             .contains("Unknown tool"));
+    }
+
+    #[tokio::test]
+    async fn dispatch_rejects_input_that_violates_schema() {
+        let d =
+            ComposedDispatcher::new(test_env()).with_handler(Arc::new(EchoHandler::new("echo")));
+
+        let result = d
+            .dispatch("echo", "id-schema", serde_json::json!({"message": 42}))
+            .await;
+
+        assert!(result.is_error);
+        assert!(result.content["error"]
+            .as_str()
+            .unwrap()
+            .contains("does not match its schema"));
+    }
+
+    #[tokio::test]
+    async fn dispatch_rejects_oversized_input_before_handler_execution() {
+        let d =
+            ComposedDispatcher::new(test_env()).with_handler(Arc::new(EchoHandler::new("echo")));
+        let payload = "x".repeat(MAX_TOOL_INPUT_BYTES + 1);
+
+        let result = d
+            .dispatch("echo", "id-large", serde_json::json!({"message": payload}))
+            .await;
+
+        assert!(result.is_error);
+        assert!(result.content["error"]
+            .as_str()
+            .unwrap()
+            .contains("exceeds maximum size"));
     }
 
     #[test]

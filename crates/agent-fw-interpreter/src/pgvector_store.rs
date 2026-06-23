@@ -84,9 +84,31 @@ impl PgVectorStore {
     }
 
     /// Override the table name (default: "embeddings").
+    ///
+    /// # Panics
+    ///
+    /// Panics if `table` is not a simple SQL identifier. This is setup-time
+    /// validation for the table-name interpolation used by pgvector DDL/DML.
     pub fn with_table(mut self, table: impl Into<String>) -> Self {
-        self.table = table.into();
+        let table = table.into();
+        Self::validate_table_name(&table);
+        self.table = table;
         self
+    }
+
+    fn validate_table_name(table: &str) {
+        let mut chars = table.chars();
+        let Some(first) = chars.next() else {
+            panic!("invalid pgvector table name: table name must be non-empty");
+        };
+        assert!(
+            first.is_ascii_alphabetic() || first == '_',
+            "invalid pgvector table name '{table}': must start with [a-zA-Z_]"
+        );
+        assert!(
+            chars.all(|c| c.is_ascii_alphanumeric() || c == '_'),
+            "invalid pgvector table name '{table}': must contain only [a-zA-Z0-9_]"
+        );
     }
 
     /// Read the vector dimension of an existing table's `embedding` column.
@@ -410,6 +432,23 @@ mod tests {
     fn default_table_name() {
         // Can't create without pool, but verify the builder API compiles
         let _table = "embeddings";
+    }
+
+    #[test]
+    fn pgvector_table_name_validation_accepts_simple_identifier() {
+        PgVectorStore::validate_table_name("tenant_embeddings_2026");
+    }
+
+    #[test]
+    #[should_panic(expected = "invalid pgvector table name")]
+    fn pgvector_table_name_validation_rejects_sql_fragments() {
+        PgVectorStore::validate_table_name("embeddings; DROP TABLE embeddings");
+    }
+
+    #[test]
+    #[should_panic(expected = "invalid pgvector table name")]
+    fn pgvector_table_name_validation_rejects_control_characters() {
+        PgVectorStore::validate_table_name("embeddings\nshadow");
     }
 
     #[test]

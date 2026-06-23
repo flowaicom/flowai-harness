@@ -1,3 +1,4 @@
+use std::env;
 use std::io::Write;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -68,6 +69,9 @@ pub(crate) struct McpToolkitArgs {
     /// Disable Streamable HTTP origin checks.
     #[arg(long)]
     no_origin_check: bool,
+    /// Required auth token for Streamable HTTP. Can also be set with FLOWAI_MCP_HTTP_TOKEN.
+    #[arg(long)]
+    auth_token: Option<String>,
     /// Optional thread id for tool event correlation.
     #[arg(long)]
     thread_id: Option<String>,
@@ -118,12 +122,14 @@ async fn run_mcp_toolkit(
             .map_err(|err| CliError::Execution(err.to_string())),
         McpTransport::StreamableHttp => {
             let bind_addr = parse_bind_addr(&args.host, args.port)?;
+            let auth_token = mcp_http_auth_token(&args)?;
             let bound = server
                 .bind_streamable_http(agent_fw_mcp::McpHttpServerConfig {
                     bind_addr,
                     endpoint_path: args.path.clone(),
                     allowed_origins: args.allow_origins,
                     require_origin: !args.no_origin_check,
+                    auth_token: Some(auth_token),
                 })
                 .await
                 .map_err(|err| CliError::Execution(err.to_string()))?;
@@ -134,6 +140,21 @@ async fn run_mcp_toolkit(
                 .map_err(|err| CliError::Execution(err.to_string()))
         }
     }
+}
+
+fn mcp_http_auth_token(args: &McpToolkitArgs) -> Result<String, CliError> {
+    let token = args
+        .auth_token
+        .clone()
+        .or_else(|| env::var("FLOWAI_MCP_HTTP_TOKEN").ok())
+        .map(|token| token.trim().to_string())
+        .filter(|token| !token.is_empty())
+        .ok_or_else(|| {
+            CliError::Parse(
+                "Streamable HTTP requires --auth-token or FLOWAI_MCP_HTTP_TOKEN".to_string(),
+            )
+        })?;
+    Ok(token)
 }
 
 async fn toolkit_runtime(

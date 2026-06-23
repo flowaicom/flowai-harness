@@ -35,7 +35,7 @@ import type {
   WorkspaceSummary,
   WorkspacesResponse,
 } from "@studio/core/runtime";
-import { getApiConfig } from "~/lib/api/client";
+import { getApiConfig, getApiRequestHeaders } from "~/lib/api/client";
 
 const STUDIO_API_VERSION = "harness-studio/v1";
 
@@ -263,7 +263,7 @@ async function requestJson<T>(
   try {
     const response = await fetch(`${apiConfig.baseUrl}${path}`, {
       method: options.method ?? "GET",
-      headers: apiConfig.headers,
+      headers: getApiRequestHeaders(),
       body: options.body === undefined ? undefined : JSON.stringify(options.body),
       signal,
     });
@@ -317,10 +317,7 @@ async function startChatStream(
   try {
     const response = await fetch(`${apiConfig.baseUrl}${path}`, {
       method: "POST",
-      headers: {
-        ...apiConfig.headers,
-        Accept: "text/event-stream",
-      },
+      headers: getApiRequestHeaders({ Accept: "text/event-stream" }),
       body: JSON.stringify({
         prompt: input.prompt,
         threadId: input.threadId,
@@ -379,7 +376,7 @@ function postRunCancellation(scope: AppScope, runId: string): void {
   const apiConfig = getApiConfig();
   void fetch(`${apiConfig.baseUrl}${workspacePath(scope, "runs", runId, "cancel")}`, {
     method: "POST",
-    headers: apiConfig.headers,
+    headers: getApiRequestHeaders(),
   }).catch(() => {
     // Abort is best-effort; the fetch close still stops local streaming.
   });
@@ -398,10 +395,7 @@ async function startDataEventStream(
   try {
     const response = await fetch(`${apiConfig.baseUrl}${path}`, {
       method: "POST",
-      headers: {
-        ...apiConfig.headers,
-        Accept: "text/event-stream",
-      },
+      headers: getApiRequestHeaders({ Accept: "text/event-stream" }),
       body: JSON.stringify(body),
       signal: controller.signal,
     });
@@ -883,9 +877,7 @@ function decodeMessagesResponse(input: unknown): readonly ThreadMessage[] {
   });
 }
 
-function decodeDeleteThreadResponse(_input: unknown): void {
-  return undefined;
-}
+function decodeDeleteThreadResponse(_input: unknown): void {}
 
 function decodeApprovalSummary(input: unknown): ApprovalSummary {
   const value = object(input);

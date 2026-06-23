@@ -11,6 +11,9 @@ pub enum McpError {
     #[error("tool `{tool_name}` input schema must be a JSON object")]
     InvalidInputSchema { tool_name: String },
 
+    #[error("MCP Streamable HTTP requires a non-empty auth token")]
+    MissingHttpAuthToken,
+
     #[error("failed to bind MCP HTTP listener on {addr}: {source}")]
     Bind {
         addr: SocketAddr,

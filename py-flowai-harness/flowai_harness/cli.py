@@ -227,6 +227,10 @@ def _run_mcp_python(program: str, args: list[str]) -> int:
     parser.add_argument("--path", default="/mcp")
     parser.add_argument("--allow-origin", action="append", dest="allowed_origins")
     parser.add_argument("--no-origin-check", action="store_true")
+    parser.add_argument(
+        "--auth-token",
+        help="Required auth token for streamable-http. Can also be set with FLOWAI_MCP_HTTP_TOKEN.",
+    )
     parser.add_argument("--thread-id")
     parser.add_argument("--call-timeout-secs", type=float, default=30.0)
     parser.add_argument(
@@ -235,6 +239,9 @@ def _run_mcp_python(program: str, args: list[str]) -> int:
         help="Reserved for future recursive agent tools; the agents toolkit is not supported in this mode.",
     )
     parsed = parser.parse_args(args)
+    auth_token = parsed.auth_token or os.environ.get("FLOWAI_MCP_HTTP_TOKEN")
+    if parsed.transport == "streamable-http" and (auth_token is None or auth_token.strip() == ""):
+        parser.error("streamable-http requires --auth-token or FLOWAI_MCP_HTTP_TOKEN")
 
     runtime = _load_runtime_target(parsed.target)
     if parsed.transport == "stdio":
@@ -263,6 +270,7 @@ def _run_mcp_python(program: str, args: list[str]) -> int:
                 expose_agent_tools=parsed.expose_agent_tools,
                 allowed_origins=parsed.allowed_origins,
                 require_origin=not parsed.no_origin_check,
+                auth_token=auth_token,
             )
         )
     return 0

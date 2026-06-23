@@ -682,13 +682,33 @@ async fn list_runtime_knowledge_items(
 fn validate_source(source: &KnowledgeSourceSpec) -> Result<(), DataCommandError> {
     match source {
         KnowledgeSourceSpec::LocalDirectory { path, .. } => {
-            if !path.exists() {
+            let workspace_root = std::env::current_dir()
+                .and_then(|path| path.canonicalize())
+                .map_err(|error| {
+                    DataCommandError::Execution(format!(
+                        "failed to resolve workspace root for knowledge ingestion: {error}"
+                    ))
+                })?;
+            let canonical_path = path.canonicalize().map_err(|error| {
+                DataCommandError::Invalid(format!(
+                    "knowledge source path cannot be resolved: {} ({error})",
+                    path.display()
+                ))
+            })?;
+            if !canonical_path.starts_with(&workspace_root) {
+                return Err(DataCommandError::Invalid(format!(
+                    "knowledge source path must be inside workspace root {}: {}",
+                    workspace_root.display(),
+                    path.display()
+                )));
+            }
+            if !canonical_path.exists() {
                 return Err(DataCommandError::Invalid(format!(
                     "knowledge source path does not exist: {}",
                     path.display()
                 )));
             }
-            if !path.is_dir() {
+            if !canonical_path.is_dir() {
                 return Err(DataCommandError::Invalid(format!(
                     "knowledge source path must be a directory: {}",
                     path.display()
@@ -797,6 +817,26 @@ mod tests {
         async fn get_enum_values(&self, _column_id: &str) -> Result<Vec<String>, CatalogError> {
             Ok(vec![])
         }
+    }
+
+    #[test]
+    fn validate_source_rejects_local_directory_outside_workspace_root() {
+        let outside = std::env::temp_dir().join(format!(
+            "flowai-knowledge-outside-{}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&outside).unwrap();
+        let source = KnowledgeSourceSpec::LocalDirectory {
+            path: outside.clone(),
+            extensions: Vec::new(),
+        };
+
+        let error = validate_source(&source).unwrap_err();
+
+        assert!(error
+            .to_string()
+            .contains("knowledge source path must be inside workspace root"));
+        let _ = std::fs::remove_dir_all(outside);
     }
 
     #[tokio::test]

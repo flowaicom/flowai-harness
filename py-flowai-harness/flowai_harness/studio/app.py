@@ -260,7 +260,12 @@ class FlowAIApp:
             ],
         }
 
-    def config_js(self, *, api_base_url: str = "/api") -> str:
+    def config_js(
+        self,
+        *,
+        api_base_url: str = "/api",
+        studio_auth_token: str | None = None,
+    ) -> str:
         payload = {
             "apiBaseUrl": api_base_url,
             "streamTransport": "sse",
@@ -268,6 +273,8 @@ class FlowAIApp:
             "studioApiVersion": STUDIO_API_VERSION,
             "defaultWorkspaceKey": self.default_workspace,
         }
+        if studio_auth_token:
+            payload["studioAuthToken"] = studio_auth_token
 
         return f"window.__FLOWAI__ = {json.dumps(payload, sort_keys=True)};\n"
 

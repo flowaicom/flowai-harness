@@ -3,7 +3,7 @@
  *
  * Uses `marked` for parsing (fastest JS markdown parser) with a global
  * LRU-style cache to avoid re-parsing identical strings across renders.
- * Output is sanitized by marked's default HTML escaping.
+ * Raw HTML blocks are escaped before rendering.
  *
  * Supports PII scrambling (Demo Mode): when enabled, text content is
  * scrambled before markdown parsing. This preserves markdown structure
@@ -16,36 +16,10 @@
  * @module components/shared/markdown
  */
 
-import { marked } from "marked";
 import { memo, useCallback, useMemo } from "react";
 import { useScramble } from "~/lib/scramble";
 import { cn } from "~/lib/utils";
-
-// Configure marked for performance + safety
-marked.setOptions({
-  gfm: true,
-  breaks: true, // Convert \n to <br> (matches whitespace-pre-wrap behavior)
-});
-
-// Module-level parse cache — avoids re-parsing identical content across
-// component instances and across renders. Bounded to prevent memory leaks.
-const MAX_CACHE_SIZE = 256;
-const parseCache = new Map<string, string>();
-
-function parseMarkdown(text: string): string {
-  const cached = parseCache.get(text);
-  if (cached !== undefined) return cached;
-
-  const html = marked.parse(text, { async: false }) as string;
-
-  // Evict oldest entry if cache is full (simple FIFO)
-  if (parseCache.size >= MAX_CACHE_SIZE) {
-    const firstKey = parseCache.keys().next().value;
-    if (firstKey !== undefined) parseCache.delete(firstKey);
-  }
-  parseCache.set(text, html);
-  return html;
-}
+import { parseMarkdown } from "./markdown-parser";
 
 /** SVG icon strings — avoids bundling lucide for DOM-injected buttons. */
 const COPY_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`;
@@ -102,8 +76,7 @@ export const Markdown = memo(function Markdown({ text, className }: MarkdownProp
     (node: HTMLDivElement | null) => {
       if (node) injectCopyButtons(node);
     },
-    // Re-run injection when html changes (new code blocks may appear)
-    // biome-ignore lint/correctness/useExhaustiveDependencies: html drives re-injection
+    // Re-run injection when html changes (new code blocks may appear).
     []
   );
 
@@ -111,7 +84,7 @@ export const Markdown = memo(function Markdown({ text, className }: MarkdownProp
     <div
       ref={refCallback}
       className={cn("markdown-content", className)}
-      // biome-ignore lint/security/noDangerouslySetInnerHtml: TODO(security) marked passes raw HTML through VERBATIM — output is UNSANITIZED. See SECURITY.md. Sanitize (DOMPurify) before enforcing CSP.
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: Marked output is constrained by a renderer that escapes raw HTML tokens.
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );

@@ -1359,7 +1359,7 @@ def test_define_eval_request_defaults_tenant_from_runtime_and_run_eval_sync():
 def test_runtime_run_eval_scripted_captures_tool_trajectory():
     calls = []
 
-    @define_tool("record_event", {"value": str})
+    @define_tool("record_event", {"value": str}, approval="never")
     def record_event(args, ctx):
         calls.append((args, ctx["tool_use_id"]))
         return {"recorded": args["value"]}

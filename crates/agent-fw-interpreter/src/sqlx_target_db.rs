@@ -554,6 +554,7 @@ pub async fn query_table_with_filters<T: TargetDatabase + ?Sized>(
     for (_key, filter) in filters.iter() {
         match filter {
             Filter::Matched { column, values } => {
+                validate_identifier(column, "column name")?;
                 if values.is_empty() {
                     wb.push_clause("FALSE".to_string());
                 } else if let (Some(physical), Some(jsonb_column)) =
@@ -1201,6 +1202,32 @@ mod tests {
         .unwrap();
 
         assert_eq!(rows.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn query_table_with_filters_rejects_unsafe_jsonb_fallback_keys() {
+        let db = crate::MockTargetDatabase::new();
+        let mut physical = HashSet::new();
+        physical.insert("product_id".to_string());
+
+        for column in ["brand'); DROP TABLE products; --", "brand\nname"] {
+            let filters = agent_fw_search::filters_from_vec(vec![Filter::matched(
+                column,
+                vec!["Acme".to_string()],
+            )]);
+
+            let error = query_table_with_filters(
+                &db,
+                TableFilterQuerySpec::new("public", "products", "product_id")
+                    .with_jsonb_column("attributes")
+                    .with_physical_columns(&physical),
+                &filters,
+            )
+            .await
+            .unwrap_err();
+
+            assert!(matches!(error, DbError::InvalidQuery(_)));
+        }
     }
 
     #[tokio::test]

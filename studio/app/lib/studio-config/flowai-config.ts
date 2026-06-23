@@ -4,6 +4,7 @@ export interface FlowAIStudioConfig {
   readonly studioApiVersion: "harness-studio/v1" | string;
   readonly defaultWorkspaceKey: string;
   readonly streamTransport: "sse" | string;
+  readonly studioAuthToken?: string;
 }
 
 export const DEFAULT_FLOWAI_STUDIO_CONFIG: FlowAIStudioConfig = {
@@ -41,6 +42,10 @@ export function normalizeFlowAIStudioConfig(
     studioApiVersion: stringField(value.studioApiVersion, fallback.studioApiVersion),
     defaultWorkspaceKey: stringField(value.defaultWorkspaceKey, fallback.defaultWorkspaceKey),
     streamTransport: stringField(value.streamTransport, fallback.streamTransport),
+    studioAuthToken:
+      typeof value.studioAuthToken === "string" && value.studioAuthToken.length > 0
+        ? value.studioAuthToken
+        : fallback.studioAuthToken,
   };
 }
 

@@ -13,6 +13,7 @@ describe("FlowAI Studio bootstrap config", () => {
       studioApiVersion: "harness-studio/v1",
       defaultWorkspaceKey: "local-dev",
       streamTransport: "sse",
+      studioAuthToken: "token-123",
     });
 
     expect(config).toEqual({
@@ -21,6 +22,7 @@ describe("FlowAI Studio bootstrap config", () => {
       studioApiVersion: "harness-studio/v1",
       defaultWorkspaceKey: "local-dev",
       streamTransport: "sse",
+      studioAuthToken: "token-123",
     } satisfies FlowAIStudioConfig);
   });
 
