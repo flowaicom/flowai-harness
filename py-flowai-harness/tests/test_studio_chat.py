@@ -15,8 +15,9 @@ from flowai_harness import (
     define_tenant,
     define_workspace_runtime,
 )
-from flowai_harness.studio import StudioStore, create_studio_app
+from flowai_harness.studio import StudioStore
 from flowai_harness.studio.server import _stream_chat
+from tests.studio_test_client import create_studio_test_client
 
 
 class FakeRuntime:
@@ -111,7 +112,7 @@ def _client(fake_runtime=None, *, workspace_key="default", store=None):
         workspaces={workspace_key: binding},
         default_workspace=workspace_key,
     )
-    return TestClient(create_studio_app(app, store=store or StudioStore(None)))
+    return create_studio_test_client(app, store=store or StudioStore(None))
 
 
 def _sse_events(response_text):
@@ -953,7 +954,7 @@ def test_thread_metadata_is_scoped_by_workspace():
         },
         default_workspace="default",
     )
-    client = TestClient(create_studio_app(app, store=store))
+    client = create_studio_test_client(app, store=store)
 
     assert (
         client.post(

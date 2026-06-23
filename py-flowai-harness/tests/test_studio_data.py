@@ -1,7 +1,5 @@
 import json
 
-from fastapi.testclient import TestClient
-
 import flowai_harness.studio.server as studio_server
 from flowai_harness import (
     define_app,
@@ -10,7 +8,8 @@ from flowai_harness import (
     define_tenant,
     define_workspace_runtime,
 )
-from flowai_harness.studio import StudioStore, create_studio_app
+from flowai_harness.studio import StudioStore
+from tests.studio_test_client import create_studio_test_client
 
 
 def _runtime_spec():
@@ -61,7 +60,7 @@ def _client(tmp_path, *, data_environment=True):
         workspaces={"default": binding},
         default_workspace="default",
     )
-    return TestClient(create_studio_app(app, store=store)), store
+    return create_studio_test_client(app, store=store), store
 
 
 def _sse_events(response_text):
