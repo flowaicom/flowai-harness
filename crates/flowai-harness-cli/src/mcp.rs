@@ -69,7 +69,10 @@ pub(crate) struct McpToolkitArgs {
     /// Disable Streamable HTTP origin checks.
     #[arg(long)]
     no_origin_check: bool,
-    /// Required auth token for Streamable HTTP. Can also be set with FLOWAI_MCP_HTTP_TOKEN.
+    /// Disable Streamable HTTP authentication. Unsafe alpha escape hatch for trusted local use.
+    #[arg(long)]
+    no_auth: bool,
+    /// Required auth token for Streamable HTTP unless --no-auth is set. Can also be set with FLOWAI_MCP_HTTP_TOKEN.
     #[arg(long)]
     auth_token: Option<String>,
     /// Optional thread id for tool event correlation.
@@ -122,14 +125,23 @@ async fn run_mcp_toolkit(
             .map_err(|err| CliError::Execution(err.to_string())),
         McpTransport::StreamableHttp => {
             let bind_addr = parse_bind_addr(&args.host, args.port)?;
-            let auth_token = mcp_http_auth_token(&args)?;
+            let auth_token = if args.no_auth {
+                writeln!(
+                    stderr,
+                    "WARNING: MCP Streamable HTTP authentication is disabled; only use --no-auth on trusted loopback development sessions."
+                )?;
+                None
+            } else {
+                Some(mcp_http_auth_token(&args)?)
+            };
             let bound = server
                 .bind_streamable_http(agent_fw_mcp::McpHttpServerConfig {
                     bind_addr,
                     endpoint_path: args.path.clone(),
                     allowed_origins: args.allow_origins,
                     require_origin: !args.no_origin_check,
-                    auth_token: Some(auth_token),
+                    require_auth: !args.no_auth,
+                    auth_token,
                 })
                 .await
                 .map_err(|err| CliError::Execution(err.to_string()))?;

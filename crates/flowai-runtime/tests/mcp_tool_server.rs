@@ -288,6 +288,7 @@ async fn runtime_mcp_http_streamable_http_lists_runtime_tools() {
             endpoint_path: "/mcp".to_string(),
             allowed_origins: vec!["http://localhost:3000".to_string()],
             require_origin: true,
+            require_auth: true,
             auth_token: Some("test-mcp-token".to_string()),
         })
         .await

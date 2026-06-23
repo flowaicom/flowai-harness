@@ -89,6 +89,7 @@ async fn streamable_http_initialize_and_tools_list_succeed() {
             endpoint_path: "/mcp".to_string(),
             allowed_origins: vec!["http://localhost:3000".to_string()],
             require_origin: true,
+            require_auth: true,
             auth_token: Some(AUTH_TOKEN.to_string()),
         })
         .await
@@ -156,6 +157,48 @@ async fn streamable_http_initialize_and_tools_list_succeed() {
 }
 
 #[tokio::test]
+async fn streamable_http_can_disable_authentication() {
+    let bound = server()
+        .bind_streamable_http(McpHttpServerConfig {
+            bind_addr: "127.0.0.1:0".parse().unwrap(),
+            endpoint_path: "/mcp".to_string(),
+            allowed_origins: vec!["http://localhost:3000".to_string()],
+            require_origin: true,
+            require_auth: false,
+            auth_token: None,
+        })
+        .await
+        .unwrap();
+    let endpoint = bound.endpoint_url();
+    let handle = tokio::spawn(bound.serve());
+
+    let client = reqwest::Client::new();
+    let initialize = client
+        .post(&endpoint)
+        .header("Accept", "application/json, text/event-stream")
+        .header("Origin", "http://localhost:3000")
+        .json(&json!({
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2025-06-18",
+                "capabilities": {},
+                "clientInfo": {"name": "test", "version": "0.1.0"}
+            }
+        }))
+        .send()
+        .await
+        .unwrap();
+
+    assert_eq!(initialize.status(), reqwest::StatusCode::OK);
+    let body = initialize.text().await.unwrap();
+    assert_eq!(json_from_streamable_body(&body)["id"], 1);
+
+    handle.abort();
+}
+
+#[tokio::test]
 async fn streamable_http_rejects_missing_authentication() {
     let bound = server()
         .bind_streamable_http(McpHttpServerConfig {
@@ -163,6 +206,7 @@ async fn streamable_http_rejects_missing_authentication() {
             endpoint_path: "/mcp".to_string(),
             allowed_origins: vec!["http://localhost:3000".to_string()],
             require_origin: true,
+            require_auth: true,
             auth_token: Some(AUTH_TOKEN.to_string()),
         })
         .await
@@ -200,6 +244,7 @@ async fn streamable_http_allows_cors_preflight_without_credentials() {
             endpoint_path: "/mcp".to_string(),
             allowed_origins: vec!["http://localhost:3000".to_string()],
             require_origin: true,
+            require_auth: true,
             auth_token: Some(AUTH_TOKEN.to_string()),
         })
         .await
@@ -232,6 +277,7 @@ async fn streamable_http_rejects_disallowed_origin() {
             endpoint_path: "/mcp".to_string(),
             allowed_origins: vec!["http://localhost:3000".to_string()],
             require_origin: true,
+            require_auth: true,
             auth_token: Some(AUTH_TOKEN.to_string()),
         })
         .await

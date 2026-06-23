@@ -116,6 +116,14 @@ def _run_studio_command(argv: list[str]) -> int:
         action="store_true",
         help="Serve API routes only and do not launch or serve Studio UI assets",
     )
+    parser.add_argument(
+        "--no-api-auth",
+        action="store_true",
+        help=(
+            "Disable local Studio API authentication. Unsafe alpha escape hatch; "
+            "only use on trusted loopback development sessions."
+        ),
+    )
     if command == "dev":
         parser.add_argument(
             "--no-frontend",
@@ -159,11 +167,21 @@ def _run_studio_command(argv: list[str]) -> int:
             return 2
 
     try:
+        run_kwargs = {
+            "host": options.host,
+            "port": options.port,
+            "serve_studio": not options.no_studio,
+        }
+        if options.no_api_auth:
+            print(
+                "WARNING: Studio API authentication is disabled; only use "
+                "--no-api-auth on trusted loopback development sessions.",
+                file=sys.stderr,
+            )
+            run_kwargs["require_api_auth"] = False
         run_studio_server(
             app,
-            host=options.host,
-            port=options.port,
-            serve_studio=not options.no_studio,
+            **run_kwargs,
         )
     finally:
         if frontend_process is not None:
@@ -229,7 +247,18 @@ def _run_mcp_python(program: str, args: list[str]) -> int:
     parser.add_argument("--no-origin-check", action="store_true")
     parser.add_argument(
         "--auth-token",
-        help="Required auth token for streamable-http. Can also be set with FLOWAI_MCP_HTTP_TOKEN.",
+        help=(
+            "Required auth token for streamable-http unless --no-auth is set. "
+            "Can also be set with FLOWAI_MCP_HTTP_TOKEN."
+        ),
+    )
+    parser.add_argument(
+        "--no-auth",
+        action="store_true",
+        help=(
+            "Disable Streamable HTTP authentication. Unsafe alpha escape hatch; "
+            "only use on trusted loopback development sessions."
+        ),
     )
     parser.add_argument("--thread-id")
     parser.add_argument("--call-timeout-secs", type=float, default=30.0)
@@ -240,7 +269,11 @@ def _run_mcp_python(program: str, args: list[str]) -> int:
     )
     parsed = parser.parse_args(args)
     auth_token = parsed.auth_token or os.environ.get("FLOWAI_MCP_HTTP_TOKEN")
-    if parsed.transport == "streamable-http" and (auth_token is None or auth_token.strip() == ""):
+    if (
+        parsed.transport == "streamable-http"
+        and not parsed.no_auth
+        and (auth_token is None or auth_token.strip() == "")
+    ):
         parser.error("streamable-http requires --auth-token or FLOWAI_MCP_HTTP_TOKEN")
 
     runtime = _load_runtime_target(parsed.target)
@@ -257,6 +290,12 @@ def _run_mcp_python(program: str, args: list[str]) -> int:
         )
     else:
         _require_method(runtime, "serve_mcp_http")
+        if parsed.no_auth:
+            print(
+                "WARNING: MCP Streamable HTTP authentication is disabled; only use "
+                "--no-auth on trusted loopback development sessions.",
+                file=sys.stderr,
+            )
         asyncio.run(
             mcp.serve_http(
                 runtime,
@@ -270,7 +309,8 @@ def _run_mcp_python(program: str, args: list[str]) -> int:
                 expose_agent_tools=parsed.expose_agent_tools,
                 allowed_origins=parsed.allowed_origins,
                 require_origin=not parsed.no_origin_check,
-                auth_token=auth_token,
+                require_auth=not parsed.no_auth,
+                auth_token=None if parsed.no_auth else auth_token,
             )
         )
     return 0

@@ -70,12 +70,13 @@ def create_studio_app(
     store: StudioStore | None = None,
     store_path: str | Path | None = ".flowai/studio.db",
     auth_token: str | None = None,
+    require_api_auth: bool = True,
     allowed_origins: tuple[str, ...] = STUDIO_ALLOWED_ORIGINS,
 ) -> FastAPI:
     """Create the FlowAI Harness Studio FastAPI application."""
 
     studio_store = store or StudioStore(store_path)
-    studio_auth_token = _studio_auth_token(auth_token)
+    studio_auth_token = _studio_auth_token(auth_token) if require_api_auth else None
     api = FastAPI(
         title="FlowAI Harness Studio API",
         version=STUDIO_API_VERSION,
@@ -87,6 +88,7 @@ def create_studio_app(
     api.state.serve_studio = serve_studio
     api.state.studio_store = studio_store
     api.state.studio_auth_token = studio_auth_token
+    api.state.require_api_auth = require_api_auth
     active_chat_runs: dict[tuple[str, str], _ActiveChatRun] = {}
     api.state.active_chat_runs = active_chat_runs
     api.add_middleware(
@@ -100,7 +102,10 @@ def create_studio_app(
     async def _studio_api_security(request: Request, call_next):
         if request.url.path.startswith("/api/") or request.url.path == "/api":
             if request.method != "OPTIONS":
-                if not _has_valid_studio_token(request, studio_auth_token):
+                if studio_auth_token is not None and not _has_valid_studio_token(
+                    request,
+                    studio_auth_token,
+                ):
                     return _error_response(
                         401,
                         code="studio.unauthorized",
@@ -1227,6 +1232,7 @@ def create_studio_server(
     store: StudioStore | None = None,
     store_path: str | Path | None = ".flowai/studio.db",
     auth_token: str | None = None,
+    require_api_auth: bool = True,
     allowed_origins: tuple[str, ...] = STUDIO_ALLOWED_ORIGINS,
 ) -> FastAPI:
     """Backward-compatible alias for the FastAPI app factory."""
@@ -1237,6 +1243,7 @@ def create_studio_server(
         store=store,
         store_path=store_path,
         auth_token=auth_token,
+        require_api_auth=require_api_auth,
         allowed_origins=allowed_origins,
     )
 
@@ -1248,10 +1255,16 @@ def run_studio_server(
     port: int = 4111,
     serve_studio: bool = True,
     auth_token: str | None = None,
+    require_api_auth: bool = True,
 ) -> None:
     """Run the local Harness Studio FastAPI app with Uvicorn."""
 
-    api = create_studio_app(app, serve_studio=serve_studio, auth_token=auth_token)
+    api = create_studio_app(
+        app,
+        serve_studio=serve_studio,
+        auth_token=auth_token,
+        require_api_auth=require_api_auth,
+    )
     if not serve_studio:
         print("Studio static UI serving disabled; API routes remain available.")
     uvicorn.run(api, host=host, port=port)

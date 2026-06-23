@@ -61,7 +61,9 @@ pub struct McpHttpServerConfig {
     pub allowed_origins: Vec<String>,
     /// Whether configured origins should be enforced for requests that carry an Origin header.
     pub require_origin: bool,
-    /// Required bearer/header token for all Streamable HTTP requests.
+    /// Whether Streamable HTTP requests must include bearer/header authentication.
+    pub require_auth: bool,
+    /// Required bearer/header token for all Streamable HTTP requests when authentication is enabled.
     pub auth_token: Option<String>,
 }
 
@@ -74,6 +76,7 @@ impl Default for McpHttpServerConfig {
             endpoint_path: "/mcp".to_string(),
             allowed_origins: Vec::new(),
             require_origin: true,
+            require_auth: true,
             auth_token: None,
         }
     }

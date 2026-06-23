@@ -33,7 +33,7 @@ const ACCESS_CONTROL_MAX_AGE: &str = "access-control-max-age";
 
 #[derive(Clone)]
 struct McpHttpAuthState {
-    token: String,
+    token: Option<String>,
     allowed_origins: Vec<String>,
     require_origin: bool,
 }
@@ -78,13 +78,19 @@ impl McpToolServer {
         if !config.endpoint_path.starts_with('/') {
             return Err(McpError::InvalidEndpointPath(config.endpoint_path));
         }
-        let auth_token = config
-            .auth_token
-            .as_deref()
-            .map(str::trim)
-            .filter(|token| !token.is_empty())
-            .ok_or(McpError::MissingHttpAuthToken)?
-            .to_string();
+        let auth_token = if config.require_auth {
+            Some(
+                config
+                    .auth_token
+                    .as_deref()
+                    .map(str::trim)
+                    .filter(|token| !token.is_empty())
+                    .ok_or(McpError::MissingHttpAuthToken)?
+                    .to_string(),
+            )
+        } else {
+            None
+        };
 
         let listener = TcpListener::bind(config.bind_addr)
             .await
@@ -152,7 +158,11 @@ async fn require_mcp_authentication(
         return mcp_preflight_response(request.headers(), origin.as_deref(), &state);
     }
 
-    if !has_valid_mcp_token(request.headers(), &state.token) {
+    if state
+        .token
+        .as_deref()
+        .is_some_and(|token| !has_valid_mcp_token(request.headers(), token))
+    {
         let mut response = (
             StatusCode::UNAUTHORIZED,
             [(header::WWW_AUTHENTICATE, "Bearer")],

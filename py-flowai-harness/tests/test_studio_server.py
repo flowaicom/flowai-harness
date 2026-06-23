@@ -121,6 +121,18 @@ def test_studio_fastapi_app_requires_api_authentication():
     assert bearer.status_code == 200
 
 
+def test_studio_fastapi_app_can_disable_api_authentication():
+    client = TestClient(
+        create_studio_app(_app(), auth_token=AUTH_TOKEN, require_api_auth=False)
+    )
+
+    status = client.get("/api/status")
+    config = client.get("/__flowai_config.js")
+
+    assert status.status_code == 200
+    assert "studioAuthToken" not in config.text
+
+
 def test_studio_fastapi_app_rejects_disallowed_write_origins():
     client = _client()
 

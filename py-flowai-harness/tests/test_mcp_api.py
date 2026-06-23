@@ -100,6 +100,32 @@ def test_serve_http_delegates_options():
     ]
 
 
+def test_serve_http_can_disable_authentication():
+    runtime = RecordingRuntime()
+
+    asyncio.run(serve_http(runtime, agent="mcp", require_auth=False))
+
+    assert runtime.calls == [
+        (
+            "http",
+            "mcp",
+            {
+                "host": "127.0.0.1",
+                "port": 8765,
+                "path": "/mcp",
+                "transport": "streamable-http",
+                "thread_id": None,
+                "call_timeout_secs": 30.0,
+                "expose_agent_tools": False,
+                "allowed_origins": None,
+                "require_origin": True,
+                "require_auth": False,
+                "auth_token": None,
+            },
+        )
+    ]
+
+
 def test_serve_http_requires_auth_token():
     runtime = RecordingRuntime()
 
