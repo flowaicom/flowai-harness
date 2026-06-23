@@ -94,6 +94,7 @@ def test_serve_http_delegates_options():
                 "expose_agent_tools": False,
                 "allowed_origins": ["http://localhost:3000"],
                 "require_origin": False,
+                "require_auth": True,
                 "auth_token": "test-mcp-token",
             },
         )
