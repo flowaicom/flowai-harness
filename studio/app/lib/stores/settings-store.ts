@@ -98,6 +98,16 @@ export type ProviderSettings = Partial<Record<ProviderKey, Record<string, string
 
 type LegacyProviderApiKeys = Partial<Record<ProviderKey, string>>;
 
+const SENSITIVE_PROVIDER_SETTING_MARKERS = [
+  "apikey",
+  "token",
+  "secret",
+  "password",
+  "credential",
+  "accesskey",
+  "privatekey",
+];
+
 /** Model pricing info */
 export interface ModelPricing {
   inputPerMTok: number;
@@ -283,6 +293,74 @@ const upgradeEndpointTargetModelField = (
     ),
   };
 };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isSensitiveProviderSettingKey(settingKey: string): boolean {
+  const normalized = settingKey.replace(/[^a-z0-9]/gi, "").toLowerCase();
+  return SENSITIVE_PROVIDER_SETTING_MARKERS.some((marker) => normalized.includes(marker));
+}
+
+function secretProviderSettingKeys(availableModels: ModelConfig[]): Map<ProviderKey, Set<string>> {
+  const keysByProvider = new Map<ProviderKey, Set<string>>();
+
+  for (const model of availableModels) {
+    for (const setting of [...model.endpointSettings, ...model.settings]) {
+      if (setting.kind !== "secret") continue;
+      const keys = keysByProvider.get(model.key) || new Set<string>();
+      keys.add(setting.key);
+      keysByProvider.set(model.key, keys);
+    }
+  }
+
+  return keysByProvider;
+}
+
+function sanitizeProviderSettings(
+  providerSettings: unknown,
+  availableModels: ModelConfig[] = []
+): ProviderSettings {
+  if (!isRecord(providerSettings)) return {};
+
+  const secretKeysByProvider = secretProviderSettingKeys(availableModels);
+  const sanitized: ProviderSettings = {};
+
+  for (const [provider, settings] of Object.entries(providerSettings)) {
+    if (!isRecord(settings)) continue;
+
+    const providerSecretKeys = secretKeysByProvider.get(provider);
+    const safeSettings: Record<string, string> = {};
+    for (const [settingKey, value] of Object.entries(settings)) {
+      if (typeof value !== "string") continue;
+      if (providerSecretKeys?.has(settingKey) || isSensitiveProviderSettingKey(settingKey)) {
+        continue;
+      }
+      safeSettings[settingKey] = value;
+    }
+
+    if (Object.keys(safeSettings).length > 0) {
+      sanitized[provider] = safeSettings;
+    }
+  }
+
+  return sanitized;
+}
+
+export function sanitizeSettingsPersistence(
+  state: Record<string, unknown>,
+  availableModels: ModelConfig[] = []
+): Record<string, unknown> {
+  const { neondbApiKey: _neondbApiKey, providerSettings, ...rest } = state;
+  return {
+    ...rest,
+    providerSettings: sanitizeProviderSettings(providerSettings, availableModels),
+  };
+}
+
+const stripSettingsPersistence = (state: Record<string, unknown>): Record<string, unknown> =>
+  sanitizeSettingsPersistence(stripWorkspaceModelConfigPersistence(state));
 
 // ============================================================================
 // Store Interface
@@ -880,16 +958,19 @@ export const useAgentConfig = create<SettingsStore>()(
     }),
     {
       name: "studio-settings",
-      version: 28,
+      version: 29,
       storage: createJSONStorage(() => zustandSettingsStorage),
       skipHydration: true,
-      partialize: (state) => ({
-        providerSettings: state.providerSettings,
-        featureFlags: state.featureFlags,
-        neondbApiKey: state.neondbApiKey,
-        neondbProjectId: state.neondbProjectId,
-        theme: state.theme,
-      }),
+      partialize: (state) =>
+        sanitizeSettingsPersistence(
+          {
+            providerSettings: state.providerSettings,
+            featureFlags: state.featureFlags,
+            neondbProjectId: state.neondbProjectId,
+            theme: state.theme,
+          },
+          state.availableModels
+        ),
       // Migrations
       migrate: (persistedState: unknown, version: number) => {
         const migrateModelKey = (key: string): ModelKey => {
@@ -942,7 +1023,7 @@ export const useAgentConfig = create<SettingsStore>()(
             agentModels = { default: model };
           }
 
-          return stripWorkspaceModelConfigPersistence(
+          return stripSettingsPersistence(
             upgradeCustomEndpointState({
               agentModels,
               agentSelectedModels: oldState.agentSelectedModels || {},
@@ -961,7 +1042,7 @@ export const useAgentConfig = create<SettingsStore>()(
         }
         if (version === 2) {
           const oldState = persistedState as { agentModels: Record<string, string> };
-          return stripWorkspaceModelConfigPersistence(
+          return stripSettingsPersistence(
             upgradeCustomEndpointState({
               agentModels: migrateAgentModels(oldState.agentModels),
               agentSelectedModels: {},
@@ -979,7 +1060,7 @@ export const useAgentConfig = create<SettingsStore>()(
             awsRegion?: string;
             featureFlags?: FeatureFlags;
           };
-          return stripWorkspaceModelConfigPersistence(
+          return stripSettingsPersistence(
             upgradeCustomEndpointState({
               agentModels: migrateAgentModels(oldState.agentModels),
               agentSelectedModels: {},
@@ -1009,7 +1090,7 @@ export const useAgentConfig = create<SettingsStore>()(
             awsRegion: string;
             featureFlags: FeatureFlags;
           };
-          return stripWorkspaceModelConfigPersistence(
+          return stripSettingsPersistence(
             upgradeCustomEndpointState({
               agentModels: oldState.agentModels,
               agentSelectedModels: oldState.agentSelectedModels || {},
@@ -1040,7 +1121,7 @@ export const useAgentConfig = create<SettingsStore>()(
             awsRegion: string;
             featureFlags: FeatureFlags;
           };
-          return stripWorkspaceModelConfigPersistence(
+          return stripSettingsPersistence(
             upgradeCustomEndpointState({
               ...oldState,
               providerSettings: {
@@ -1067,7 +1148,7 @@ export const useAgentConfig = create<SettingsStore>()(
             awsRegion: string;
             featureFlags: FeatureFlags;
           };
-          return stripWorkspaceModelConfigPersistence(
+          return stripSettingsPersistence(
             upgradeCustomEndpointState({
               ...oldState,
               providerSettings: {
@@ -1086,7 +1167,7 @@ export const useAgentConfig = create<SettingsStore>()(
         }
         if (version === 15) {
           const oldState = persistedState as Record<string, unknown> & { awsRegion?: string };
-          return stripWorkspaceModelConfigPersistence(
+          return stripSettingsPersistence(
             upgradeCustomEndpointState({
               ...oldState,
               providerSettings: oldState.awsRegion
@@ -1099,7 +1180,7 @@ export const useAgentConfig = create<SettingsStore>()(
         if (version === 16) {
           const oldState = persistedState as Record<string, unknown> & { awsRegion?: string };
           const oldFlags = (oldState.featureFlags || {}) as Record<string, unknown>;
-          return stripWorkspaceModelConfigPersistence(
+          return stripSettingsPersistence(
             upgradeCustomEndpointState({
               ...oldState,
               providerSettings: oldState.awsRegion
@@ -1111,7 +1192,7 @@ export const useAgentConfig = create<SettingsStore>()(
         }
         if (version === 17) {
           const oldState = persistedState as Record<string, unknown> & { awsRegion?: string };
-          return stripWorkspaceModelConfigPersistence(
+          return stripSettingsPersistence(
             upgradeCustomEndpointState({
               ...oldState,
               providerSettings: oldState.awsRegion
@@ -1124,7 +1205,7 @@ export const useAgentConfig = create<SettingsStore>()(
         }
         if (version === 18) {
           const oldState = persistedState as Record<string, unknown> & { awsRegion?: string };
-          return stripWorkspaceModelConfigPersistence(
+          return stripSettingsPersistence(
             upgradeCustomEndpointState({
               ...oldState,
               providerSettings: oldState.awsRegion
@@ -1136,7 +1217,7 @@ export const useAgentConfig = create<SettingsStore>()(
         }
         if (version === 19) {
           const oldState = persistedState as Record<string, unknown> & { awsRegion?: string };
-          return stripWorkspaceModelConfigPersistence(
+          return stripSettingsPersistence(
             upgradeCustomEndpointState({
               ...oldState,
               providerSettings: oldState.awsRegion
@@ -1153,7 +1234,7 @@ export const useAgentConfig = create<SettingsStore>()(
             providerRegions?: Partial<Record<ProviderKey, string>>;
             providerSettings?: ProviderSettings;
           } & Record<string, unknown>;
-          return stripWorkspaceModelConfigPersistence(
+          return stripSettingsPersistence(
             upgradeCustomEndpointState({
               ...oldState,
               providerSettings: oldState.providerSettings || {
@@ -1175,7 +1256,7 @@ export const useAgentConfig = create<SettingsStore>()(
           );
         }
         if (version === 23) {
-          return stripWorkspaceModelConfigPersistence(
+          return stripSettingsPersistence(
             upgradeEndpointTargetModelField(
               upgradeCustomEndpointState(persistedState as Record<string, unknown>)
             )
@@ -1200,7 +1281,7 @@ export const useAgentConfig = create<SettingsStore>()(
           cacheControl:
             typeof upgraded.cacheControl === "boolean" ? upgraded.cacheControl : undefined,
         });
-        return stripWorkspaceModelConfigPersistence({
+        return stripSettingsPersistence({
           ...upgraded,
           ...migratedSettings,
         });
