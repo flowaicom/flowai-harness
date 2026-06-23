@@ -193,6 +193,38 @@ async fn streamable_http_rejects_missing_authentication() {
 }
 
 #[tokio::test]
+async fn streamable_http_allows_cors_preflight_without_credentials() {
+    let bound = server()
+        .bind_streamable_http(McpHttpServerConfig {
+            bind_addr: "127.0.0.1:0".parse().unwrap(),
+            endpoint_path: "/mcp".to_string(),
+            allowed_origins: vec!["http://localhost:3000".to_string()],
+            require_origin: true,
+            auth_token: Some(AUTH_TOKEN.to_string()),
+        })
+        .await
+        .unwrap();
+    let endpoint = bound.endpoint_url();
+    let handle = tokio::spawn(bound.serve());
+
+    let response = reqwest::Client::new()
+        .request(reqwest::Method::OPTIONS, &endpoint)
+        .header("Origin", "http://localhost:3000")
+        .header("Access-Control-Request-Method", "POST")
+        .header("Access-Control-Request-Headers", "x-flowai-mcp-token, content-type")
+        .send()
+        .await
+        .unwrap();
+
+    assert!(
+        response.status().is_success(),
+        "preflight failed with {}",
+        response.status()
+    );
+    handle.abort();
+}
+
+#[tokio::test]
 async fn streamable_http_rejects_disallowed_origin() {
     let bound = server()
         .bind_streamable_http(McpHttpServerConfig {

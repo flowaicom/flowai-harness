@@ -14,4 +14,16 @@ describe("parseMarkdown", () => {
     expect(html).toContain("&lt;script&gt;");
     expect(html).toContain("&lt;img src=x onerror=alert(1)&gt;");
   });
+
+  test("removes unsafe markdown link and image URLs", () => {
+    const html = parseMarkdown(
+      "[click](javascript:alert(1))\n\n![x](javascript:alert(2))\n\n[safe](https://example.com/path)"
+    );
+
+    expect(html).not.toContain("javascript:");
+    expect(html).not.toContain('href="javascript');
+    expect(html).not.toContain('src="javascript');
+    expect(html).toContain("<a>click</a>");
+    expect(html).toContain('<a href="https://example.com/path">safe</a>');
+  });
 });

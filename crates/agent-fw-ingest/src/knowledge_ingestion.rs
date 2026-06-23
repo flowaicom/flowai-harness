@@ -600,6 +600,7 @@ pub fn scan_local_directory(
 #[derive(Default)]
 struct ScanState {
     results: Vec<DiscoveredDocument>,
+    matched_files: usize,
     total_bytes: u64,
 }
 
@@ -633,11 +634,6 @@ fn scan_recursive(
         if file_type.is_dir() {
             scan_recursive(root, &canonical, extensions, depth + 1, state)?;
         } else if file_type.is_file() {
-            if state.results.len() >= MAX_SCAN_FILES {
-                return Err(KnowledgeIngestionError::LimitExceeded(format!(
-                    "file count exceeded {MAX_SCAN_FILES}"
-                )));
-            }
             // Extension filter
             if !extensions.is_empty() {
                 let ext = canonical.extension().and_then(|e| e.to_str()).unwrap_or("");
@@ -645,6 +641,12 @@ fn scan_recursive(
                     continue;
                 }
             }
+            if state.matched_files >= MAX_SCAN_FILES {
+                return Err(KnowledgeIngestionError::LimitExceeded(format!(
+                    "file count exceeded {MAX_SCAN_FILES}"
+                )));
+            }
+            state.matched_files += 1;
 
             let metadata = std::fs::metadata(&canonical)?;
             if metadata.len() > MAX_SCAN_FILE_BYTES {
@@ -659,6 +661,7 @@ fn scan_recursive(
                     "total file bytes exceeded {MAX_SCAN_TOTAL_BYTES}"
                 )));
             }
+            state.total_bytes = next_total;
 
             let content = match std::fs::read_to_string(&canonical) {
                 Ok(c) => c,
@@ -667,7 +670,6 @@ fn scan_recursive(
                     continue;
                 }
             };
-            state.total_bytes = next_total;
 
             let mut hasher = Sha256::new();
             hasher.update(content.as_bytes());
@@ -787,6 +789,18 @@ mod tests {
         }
 
         let error = scan_local_directory(dir.path(), &[]).unwrap_err();
+
+        assert!(matches!(error, KnowledgeIngestionError::LimitExceeded(_)));
+    }
+
+    #[test]
+    fn scan_rejects_too_many_unreadable_matching_files() {
+        let dir = TempDir::new().unwrap();
+        for index in 0..=MAX_SCAN_FILES {
+            std::fs::write(dir.path().join(format!("doc-{index}.txt")), [0xFF, 0xFE]).unwrap();
+        }
+
+        let error = scan_local_directory(dir.path(), &["txt".into()]).unwrap_err();
 
         assert!(matches!(error, KnowledgeIngestionError::LimitExceeded(_)));
     }

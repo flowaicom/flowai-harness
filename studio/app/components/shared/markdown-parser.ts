@@ -1,7 +1,8 @@
-import { marked } from "marked";
+import { marked, type Tokens } from "marked";
 
 const MAX_CACHE_SIZE = 256;
 const parseCache = new Map<string, string>();
+const SAFE_URL_PROTOCOLS = new Set(["http:", "https:", "mailto:", "tel:"]);
 
 export function escapeHtml(text: string): string {
   return text
@@ -22,8 +23,63 @@ function htmlTokenText(token: unknown): string {
   return "";
 }
 
+function hasUnsafeUrlCharacter(value: string): boolean {
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code <= 0x20 || code === 0x7f) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isSafeUrl(href: string): boolean {
+  const value = href.trim();
+  if (!value || hasUnsafeUrlCharacter(value)) {
+    return false;
+  }
+  if (value.startsWith("#") || value.startsWith("?") || value.startsWith("./")) {
+    return true;
+  }
+  if (value.startsWith("/") && !value.startsWith("//")) {
+    return true;
+  }
+  if (value.startsWith("../")) {
+    return true;
+  }
+
+  try {
+    const parsed = new URL(value, "https://flowai.local");
+    const hasExplicitScheme = /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(value);
+    if (!hasExplicitScheme && parsed.origin === "https://flowai.local") {
+      return true;
+    }
+    return SAFE_URL_PROTOCOLS.has(parsed.protocol);
+  } catch {
+    return false;
+  }
+}
+
+function optionalAttribute(name: string, value: string | null | undefined): string {
+  return value ? ` ${name}="${escapeHtml(value)}"` : "";
+}
+
 const renderer = new marked.Renderer();
 renderer.html = (token: unknown) => escapeHtml(htmlTokenText(token));
+renderer.link = function ({ href, title, tokens }: Tokens.Link) {
+  const text = this.parser.parseInline(tokens);
+  if (!isSafeUrl(href)) {
+    return `<a>${text}</a>`;
+  }
+  return `<a href="${escapeHtml(href)}"${optionalAttribute("title", title)}>${text}</a>`;
+};
+renderer.image = ({ href, title, text }: Tokens.Image) => {
+  const alt = escapeHtml(text);
+  if (!isSafeUrl(href)) {
+    return `<span>${alt}</span>`;
+  }
+  return `<img src="${escapeHtml(href)}" alt="${alt}"${optionalAttribute("title", title)}>`;
+};
 
 marked.setOptions({
   gfm: true,

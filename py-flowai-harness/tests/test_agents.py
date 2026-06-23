@@ -442,7 +442,7 @@ def test_define_runtime_derives_agent_toolkits_and_coordinator_approval(
         "agents": {},
         "tools": {
             "scenario_executor": {
-                "search_products": {"kind": "never"},
+                "search_products": {"kind": "always"},
             }
         },
     }
