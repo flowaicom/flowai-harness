@@ -76,6 +76,7 @@ def test_serve_http_delegates_options():
             path="/mcp",
             allowed_origins=["http://localhost:3000"],
             require_origin=False,
+            auth_token="test-mcp-token",
         )
     )
 
@@ -93,13 +94,52 @@ def test_serve_http_delegates_options():
                 "expose_agent_tools": False,
                 "allowed_origins": ["http://localhost:3000"],
                 "require_origin": False,
+                "require_auth": True,
+                "auth_token": "test-mcp-token",
             },
         )
     ]
 
 
+def test_serve_http_can_disable_authentication():
+    runtime = RecordingRuntime()
+
+    asyncio.run(serve_http(runtime, agent="mcp", require_auth=False))
+
+    assert runtime.calls == [
+        (
+            "http",
+            "mcp",
+            {
+                "host": "127.0.0.1",
+                "port": 8765,
+                "path": "/mcp",
+                "transport": "streamable-http",
+                "thread_id": None,
+                "call_timeout_secs": 30.0,
+                "expose_agent_tools": False,
+                "allowed_origins": None,
+                "require_origin": True,
+                "require_auth": False,
+                "auth_token": None,
+            },
+        )
+    ]
+
+
+def test_serve_http_requires_auth_token():
+    runtime = RecordingRuntime()
+
+    try:
+        asyncio.run(serve_http(runtime, agent="mcp"))
+    except ValueError as exc:
+        assert "auth_token" in str(exc)
+    else:
+        raise AssertionError("serve_http should reject missing auth_token")
+
+
 def test_create_mcp_runtime_lists_custom_tool():
-    @define_tool("echo", {"message": str}, description="Echo message")
+    @define_tool("echo", {"message": str}, description="Echo message", approval="never")
     def echo(args, ctx):
         return {"message": args["message"]}
 

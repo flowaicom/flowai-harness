@@ -296,6 +296,52 @@ def test_cli_serve_does_not_start_frontend(tmp_path, monkeypatch):
     ]
 
 
+def test_cli_serve_can_disable_api_authentication(tmp_path, monkeypatch, capsys):
+    module_path = tmp_path / "studio_cli_fixture.py"
+    module_path.write_text(
+        "from flowai_harness import define_app, define_runtime, define_tenant\n"
+        "app = define_app(\n"
+        "    name='fixture',\n"
+        "    runtime_spec=define_runtime(tenant=define_tenant('acme', 'v1')),\n"
+        ")\n",
+        encoding="utf-8",
+    )
+    monkeypatch.syspath_prepend(str(tmp_path))
+    calls = []
+
+    def fake_run_studio_server(app, **kwargs):
+        calls.append((app.name, kwargs))
+
+    monkeypatch.setattr(cli, "run_studio_server", fake_run_studio_server)
+
+    assert (
+        cli.main(
+            [
+                "flowai-harness",
+                "serve",
+                "--app",
+                "studio_cli_fixture:app",
+                "--no-api-auth",
+            ]
+        )
+        == 0
+    )
+
+    captured = capsys.readouterr()
+    assert "WARNING: Studio API authentication is disabled" in captured.err
+    assert calls == [
+        (
+            "fixture",
+            {
+                "host": "127.0.0.1",
+                "port": 4111,
+                "serve_studio": True,
+                "require_api_auth": False,
+            },
+        )
+    ]
+
+
 def test_cli_dev_bad_app_returns_structured_error(capsys):
     code = cli.main(["flowai-harness", "dev", "--app", "missing_module:app"])
 

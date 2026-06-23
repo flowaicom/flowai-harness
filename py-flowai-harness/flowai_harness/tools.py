@@ -23,7 +23,7 @@ class ToolSpec(BaseModel):
     name: str
     description: str = ""
     input_schema: dict[str, Any]
-    approval: dict[str, Any] = Field(default_factory=lambda: {"kind": "never"})
+    approval: dict[str, Any] = Field(default_factory=lambda: {"kind": "always"})
     output_schema: dict[str, Any] | None = None
     binding_id: str | None = None
     handler: Callable[..., Any] | None = Field(default=None, exclude=True)
@@ -35,7 +35,7 @@ class ToolSpec(BaseModel):
         if not isinstance(value, dict):
             return value
         data = dict(value)
-        approval = data.get("approval", "never")
+        approval = data.get("approval", "always")
         name = data.get("name")
         binding_id = data.get("binding_id", data.get("bindingId"))
         if callable(approval) and data.get("approval_handler") is None:
@@ -72,7 +72,7 @@ def define_tool(
     name: str,
     input_schema: Any,
     description: str = "",
-    approval: str | Mapping[str, Any] | Callable[..., bool] = "never",
+    approval: str | Mapping[str, Any] | Callable[..., bool] = "always",
     output_schema: Any | None = None,
     binding_id: str | None = None,
 ) -> ToolSpec:
@@ -88,7 +88,7 @@ def define_tool(
             model class, a simple type map such as ``{"query": str}``, or
             any type hint Pydantic can export.
         description: Tool description presented to the model.
-        approval: Approval policy: ``"never"`` (default), ``"always"``, a
+        approval: Approval policy: ``"always"`` (default), ``"never"``, a
             mapping ``{"kind": "dynamic", "value": predicate_id}``, or a
             callable predicate. A callable becomes a dynamic policy whose id
             is ``binding_id`` or ``"<name>_approval"``, with the callable

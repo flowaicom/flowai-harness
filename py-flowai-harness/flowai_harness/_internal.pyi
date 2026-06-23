@@ -217,6 +217,8 @@ class PyRuntime:
         expose_agent_tools: bool = False,
         allowed_origins: list[str] | None = None,
         require_origin: bool = True,
+        require_auth: bool = True,
+        auth_token: str | None = None,
     ) -> None:
         """Serve one agent's tools over MCP Streamable HTTP.
 
@@ -231,6 +233,9 @@ class PyRuntime:
             expose_agent_tools: Reserved for future recursive agent tools.
             allowed_origins: Additional `Origin` header values to accept.
             require_origin: Validate browser `Origin` headers.
+            require_auth: Require bearer/header authentication.
+            auth_token: Required bearer/header token for Streamable HTTP when
+                authentication is enabled.
 
         Raises:
             ValueError: If `transport` is not `"streamable-http"`.

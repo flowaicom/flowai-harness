@@ -95,6 +95,26 @@ http://127.0.0.1:4111
 The same server serves the Studio UI, `/api/...` routes, and the dynamic
 `/__flowai_config.js` file.
 
+Studio API authentication is enabled by default. The browser UI receives a
+per-process token from `/__flowai_config.js` and adds it automatically to API
+requests, so normal UI usage does not require any settings changes.
+
+Direct API clients must send the token:
+
+```bash
+curl -H "X-FlowAI-Studio-Token: <token-from-__flowai_config.js>" \
+  http://127.0.0.1:4111/api/status
+```
+
+For alpha-only local workflows that cannot set headers, disable the local API
+token check explicitly:
+
+```bash
+flowai-harness serve --app my_agent.studio_app:app --no-api-auth
+```
+
+Only use `--no-api-auth` on trusted loopback development sessions.
+
 ## Attach a data environment
 
 Pass the same data environment you use for runtime data tools. Studio uses it
@@ -196,9 +216,9 @@ checks in demo fixtures.
 After the server starts, these endpoints should respond:
 
 ```bash
-curl http://127.0.0.1:4111/api/status
-curl http://127.0.0.1:4111/api/workspaces
-curl http://127.0.0.1:4111/api/workspaces/default/agents
+curl -H "X-FlowAI-Studio-Token: <token>" http://127.0.0.1:4111/api/status
+curl -H "X-FlowAI-Studio-Token: <token>" http://127.0.0.1:4111/api/workspaces
+curl -H "X-FlowAI-Studio-Token: <token>" http://127.0.0.1:4111/api/workspaces/default/agents
 ```
 
 The root path should return Studio HTML:

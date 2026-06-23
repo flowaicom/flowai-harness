@@ -393,7 +393,6 @@ pub fn validate_read_only(sql: &str) -> Result<(), DbError> {
 
 /// Validate a SQL string as read-only for a specific database dialect.
 pub fn validate_read_only_for(sql: &str, database_type: DatabaseType) -> Result<(), DbError> {
-    use sqlparser::ast::Statement;
     use sqlparser::dialect::{MySqlDialect, PostgreSqlDialect, SQLiteDialect};
     use sqlparser::parser::Parser;
 
@@ -414,9 +413,16 @@ pub fn validate_read_only_for(sql: &str, database_type: DatabaseType) -> Result<
         ));
     }
 
-    match &statements[0] {
+    check_statement_safety(&statements[0])
+}
+
+fn check_statement_safety(statement: &sqlparser::ast::Statement) -> Result<(), DbError> {
+    use sqlparser::ast::Statement;
+
+    match statement {
         Statement::Query(q) => check_query_safety(q),
-        Statement::Explain { .. } | Statement::ExplainTable { .. } => Ok(()),
+        Statement::Explain { statement, .. } => check_statement_safety(statement),
+        Statement::ExplainTable { .. } => Ok(()),
         // SHOW and SET (read-only introspection) are safe
         Statement::ShowVariable { .. }
         | Statement::ShowTables { .. }
@@ -1242,6 +1248,7 @@ mod tests {
         assert!(validate_read_only("select id from users where x = 1").is_ok());
         assert!(validate_read_only("WITH cte AS (SELECT 1) SELECT * FROM cte").is_ok());
         assert!(validate_read_only("EXPLAIN SELECT * FROM users").is_ok());
+        assert!(validate_read_only("EXPLAIN ANALYZE SELECT * FROM users").is_ok());
     }
 
     #[test]
@@ -1253,6 +1260,13 @@ mod tests {
         assert!(validate_read_only("CREATE TABLE foo (id INT)").is_err());
         assert!(validate_read_only("ALTER TABLE users ADD col INT").is_err());
         assert!(validate_read_only("TRUNCATE users").is_err());
+    }
+
+    #[test]
+    fn validate_read_only_rejects_explained_mutations() {
+        assert!(validate_read_only("EXPLAIN UPDATE users SET name = 'x'").is_err());
+        assert!(validate_read_only("EXPLAIN ANALYZE DELETE FROM users").is_err());
+        assert!(validate_read_only("EXPLAIN INSERT INTO users VALUES (1)").is_err());
     }
 
     #[test]

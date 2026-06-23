@@ -11,7 +11,8 @@ from flowai_harness import (
     define_tenant,
     define_workspace_runtime,
 )
-from flowai_harness.studio import StudioStore, create_studio_app
+from flowai_harness.studio import StudioStore
+from tests.studio_test_client import create_studio_test_client
 
 
 class ToolEmittingRuntime:
@@ -57,7 +58,7 @@ def _client(store: StudioStore) -> TestClient:
     spec = define_runtime(tenant=define_tenant("acme", "v1"), agents=[coordinator, planner])
     binding = define_workspace_runtime(runtime_spec=spec, runtime=ToolEmittingRuntime())
     app = define_app(name="demo", workspaces={"default": binding}, default_workspace="default")
-    return TestClient(create_studio_app(app, store=store))
+    return create_studio_test_client(app, store=store)
 
 
 def _seed_chat(client: TestClient, *, thread_id="thread-1", message="Search products") -> None:
@@ -188,7 +189,7 @@ def test_from_chat_prefills_planned_action_ground_truth():
     spec = define_runtime(tenant=define_tenant("acme", "v1"), agents=[coordinator, planner])
     binding = define_workspace_runtime(runtime_spec=spec, runtime=PlanStoringRuntime())
     app = define_app(name="demo", workspaces={"default": binding}, default_workspace="default")
-    client = TestClient(create_studio_app(app, store=StudioStore(None)))
+    client = create_studio_test_client(app, store=StudioStore(None))
     _seed_chat(client, message="Run the summer sale")
 
     resp = client.post(
@@ -245,7 +246,7 @@ def test_tool_catalog_includes_role_default_tools():
     )
     binding = define_workspace_runtime(runtime_spec=spec, runtime=ToolEmittingRuntime())
     app = define_app(name="demo", workspaces={"default": binding}, default_workspace="default")
-    client = TestClient(create_studio_app(app, store=StudioStore(None)))
+    client = create_studio_test_client(app, store=StudioStore(None))
 
     resp = client.get("/api/workspaces/default/tests/tools")
     assert resp.status_code == 200, resp.text

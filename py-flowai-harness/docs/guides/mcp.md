@@ -52,6 +52,7 @@ Or serve it over Streamable HTTP:
 
 ```python
 import asyncio
+import os
 from flowai_harness import mcp
 
 asyncio.run(
@@ -63,6 +64,7 @@ asyncio.run(
         path="/mcp",
         transport="streamable-http",
         allowed_origins=["http://localhost:3000"],
+        auth_token=os.environ["FLOWAI_MCP_HTTP_TOKEN"],
     )
 )
 ```
@@ -114,7 +116,7 @@ Python callbacks. The target can be a runtime object or a callable factory.
 
 ```bash
 flowai-harness mcp python my_app:build_runtime --agent mcp
-flowai-harness mcp python my_app:build_runtime --agent mcp --transport streamable-http --port 8765
+FLOWAI_MCP_HTTP_TOKEN=dev-token flowai-harness mcp python my_app:build_runtime --agent mcp --transport streamable-http --port 8765
 ```
 
 Use `flowai-harness mcp toolkit ...` for toolkit-only servers that do not need
@@ -122,7 +124,7 @@ Python callbacks.
 
 ```bash
 flowai-harness mcp toolkit --toolkit catalog --data-environment data-environment.toml --agent mcp --tenant-id acme
-flowai-harness mcp toolkit --toolkit catalog --data-environment data-environment.toml --agent mcp --tenant-id acme --transport streamable-http --port 8765
+FLOWAI_MCP_HTTP_TOKEN=dev-token flowai-harness mcp toolkit --toolkit catalog --data-environment data-environment.toml --agent mcp --tenant-id acme --transport streamable-http --port 8765
 ```
 
 For stdio MCP clients, configure the client command as the console script plus
@@ -136,7 +138,13 @@ the same arguments. For example:
 ```
 
 For HTTP-capable MCP clients, start the server first and point the client at
-the Streamable HTTP endpoint, such as `http://127.0.0.1:8765/mcp`.
+the Streamable HTTP endpoint, such as `http://127.0.0.1:8765/mcp`. Clients must
+send either `X-FlowAI-MCP-Token: <token>` or `Authorization: Bearer <token>`.
+
+For alpha-only local workflows that cannot send headers, pass `--no-auth` on
+the CLI or `require_auth=False` to `mcp.serve_http(...)`. This disables
+Streamable HTTP authentication for that process and should only be used on
+trusted loopback development sessions.
 
 ## Constraints
 
@@ -144,6 +152,9 @@ the Streamable HTTP endpoint, such as `http://127.0.0.1:8765/mcp`.
 - Streamable HTTP is the current HTTP transport; legacy HTTP+SSE endpoints are
   intentionally unsupported in this build.
 - HTTP servers bind to `127.0.0.1` by default.
+- Streamable HTTP authentication is enabled by default. Use `--auth-token` or
+  `FLOWAI_MCP_HTTP_TOKEN`; use `--no-auth` only as an unsafe alpha escape
+  hatch.
 - HTTP origin validation is enabled by default. Use repeated `--allow-origin`
   flags or `allowed_origins=[...]` for browser clients.
 - Toolkit servers use tenant `flowai-mcp` by default. Use `tenant=...` or

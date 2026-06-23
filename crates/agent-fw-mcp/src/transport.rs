@@ -3,7 +3,13 @@ use std::{
     sync::Arc,
 };
 
-use axum::Router;
+use axum::{
+    extract::{Request, State},
+    http::{header, HeaderMap, HeaderValue, Method, StatusCode},
+    middleware::{self, Next},
+    response::{IntoResponse, Response},
+    Router,
+};
 use rmcp::{
     transport::{
         io::stdio,
@@ -16,6 +22,21 @@ use rmcp::{
 use tokio::net::TcpListener;
 
 use crate::{McpError, McpHttpServerConfig, McpToolServer};
+
+const MCP_AUTH_HEADER: &str = "x-flowai-mcp-token";
+const ACCESS_CONTROL_REQUEST_METHOD: &str = "access-control-request-method";
+const ACCESS_CONTROL_REQUEST_HEADERS: &str = "access-control-request-headers";
+const ACCESS_CONTROL_ALLOW_ORIGIN: &str = "access-control-allow-origin";
+const ACCESS_CONTROL_ALLOW_METHODS: &str = "access-control-allow-methods";
+const ACCESS_CONTROL_ALLOW_HEADERS: &str = "access-control-allow-headers";
+const ACCESS_CONTROL_MAX_AGE: &str = "access-control-max-age";
+
+#[derive(Clone)]
+struct McpHttpAuthState {
+    token: Option<String>,
+    allowed_origins: Vec<String>,
+    require_origin: bool,
+}
 
 /// Bound Streamable HTTP MCP server.
 pub struct McpBoundHttpServer {
@@ -57,6 +78,19 @@ impl McpToolServer {
         if !config.endpoint_path.starts_with('/') {
             return Err(McpError::InvalidEndpointPath(config.endpoint_path));
         }
+        let auth_token = if config.require_auth {
+            Some(
+                config
+                    .auth_token
+                    .as_deref()
+                    .map(str::trim)
+                    .filter(|token| !token.is_empty())
+                    .ok_or(McpError::MissingHttpAuthToken)?
+                    .to_string(),
+            )
+        } else {
+            None
+        };
 
         let listener = TcpListener::bind(config.bind_addr)
             .await
@@ -73,7 +107,16 @@ impl McpToolServer {
                 Arc::new(LocalSessionManager::default()),
                 rmcp_config,
             );
-        let router = Router::new().nest_service(&config.endpoint_path, service);
+        let router = Router::new()
+            .nest_service(&config.endpoint_path, service)
+            .layer(middleware::from_fn_with_state(
+                McpHttpAuthState {
+                    token: auth_token,
+                    allowed_origins: config.allowed_origins.clone(),
+                    require_origin: config.require_origin,
+                },
+                require_mcp_authentication,
+            ));
 
         Ok(McpBoundHttpServer {
             listener,
@@ -97,6 +140,127 @@ impl McpToolServer {
         running.waiting().await.map_err(McpError::StdioJoin)?;
         Ok(())
     }
+}
+
+async fn require_mcp_authentication(
+    State(state): State<McpHttpAuthState>,
+    request: Request,
+    next: Next,
+) -> Response {
+    let origin = request
+        .headers()
+        .get(header::ORIGIN)
+        .and_then(|value| value.to_str().ok())
+        .map(str::to_string);
+    if request.method() == Method::OPTIONS
+        && request.headers().contains_key(ACCESS_CONTROL_REQUEST_METHOD)
+    {
+        return mcp_preflight_response(request.headers(), origin.as_deref(), &state);
+    }
+
+    if state
+        .token
+        .as_deref()
+        .is_some_and(|token| !has_valid_mcp_token(request.headers(), token))
+    {
+        let mut response = (
+            StatusCode::UNAUTHORIZED,
+            [(header::WWW_AUTHENTICATE, "Bearer")],
+            "MCP Streamable HTTP authentication is required",
+        )
+            .into_response();
+        apply_cors_headers(response.headers_mut(), origin.as_deref(), &state);
+        return response;
+    }
+
+    let mut response = next.run(request).await;
+    apply_cors_headers(response.headers_mut(), origin.as_deref(), &state);
+    response
+}
+
+fn has_valid_mcp_token(headers: &HeaderMap, expected_token: &str) -> bool {
+    let supplied = headers
+        .get(MCP_AUTH_HEADER)
+        .and_then(|value| value.to_str().ok())
+        .or_else(|| {
+            headers
+                .get(header::AUTHORIZATION)
+                .and_then(|value| value.to_str().ok())
+                .and_then(|value| {
+                    let (scheme, token) = value.split_once(' ')?;
+                    scheme.eq_ignore_ascii_case("bearer").then_some(token)
+                })
+        });
+    supplied.is_some_and(|token| constant_time_eq(token.as_bytes(), expected_token.as_bytes()))
+}
+
+fn constant_time_eq(left: &[u8], right: &[u8]) -> bool {
+    if left.len() != right.len() {
+        return false;
+    }
+    let diff = left
+        .iter()
+        .zip(right.iter())
+        .fold(0_u8, |acc, (left, right)| acc | (left ^ right));
+    diff == 0
+}
+
+fn mcp_preflight_response(
+    request_headers: &HeaderMap,
+    origin: Option<&str>,
+    state: &McpHttpAuthState,
+) -> Response {
+    if !is_allowed_cors_origin(origin, state) {
+        return (StatusCode::FORBIDDEN, "Forbidden: Origin header is not allowed").into_response();
+    }
+
+    let mut response = StatusCode::NO_CONTENT.into_response();
+    apply_cors_headers(response.headers_mut(), origin, state);
+    response.headers_mut().insert(
+        ACCESS_CONTROL_ALLOW_METHODS,
+        HeaderValue::from_static("GET, POST, DELETE, OPTIONS"),
+    );
+    let requested_headers = request_headers
+        .get(ACCESS_CONTROL_REQUEST_HEADERS)
+        .cloned()
+        .unwrap_or_else(|| {
+            HeaderValue::from_static(
+                "authorization, content-type, x-flowai-mcp-token, mcp-session-id, mcp-protocol-version, last-event-id",
+            )
+        });
+    response
+        .headers_mut()
+        .insert(ACCESS_CONTROL_ALLOW_HEADERS, requested_headers);
+    response
+        .headers_mut()
+        .insert(ACCESS_CONTROL_MAX_AGE, HeaderValue::from_static("600"));
+    response
+}
+
+fn apply_cors_headers(headers: &mut HeaderMap, origin: Option<&str>, state: &McpHttpAuthState) {
+    let Some(origin) = allowed_cors_origin(origin, state) else {
+        return;
+    };
+    if let Ok(value) = HeaderValue::from_str(origin) {
+        headers.insert(ACCESS_CONTROL_ALLOW_ORIGIN, value);
+        headers.insert(header::VARY, HeaderValue::from_static("Origin"));
+    }
+}
+
+fn is_allowed_cors_origin(origin: Option<&str>, state: &McpHttpAuthState) -> bool {
+    allowed_cors_origin(origin, state).is_some() || origin.is_none()
+}
+
+fn allowed_cors_origin<'a>(origin: Option<&'a str>, state: &McpHttpAuthState) -> Option<&'a str> {
+    let origin = origin?;
+    if !state.require_origin || state.allowed_origins.is_empty() {
+        return Some(origin);
+    }
+    state
+        .allowed_origins
+        .iter()
+        .any(|allowed| allowed == origin)
+        .then_some(origin)
 }
 
 fn streamable_http_config(

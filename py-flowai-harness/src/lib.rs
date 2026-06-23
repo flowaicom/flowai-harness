@@ -561,6 +561,8 @@ impl PyRuntime {
     ///     expose_agent_tools: Reserved for future recursive agent tools.
     ///     allowed_origins: Additional `Origin` header values to accept.
     ///     require_origin: Validate browser `Origin` headers.
+    ///     require_auth: Require bearer/header authentication.
+    ///     auth_token: Required bearer/header token when authentication is enabled.
     ///
     /// Returns:
     ///     Awaitable resolving when the server stops.
@@ -579,7 +581,9 @@ impl PyRuntime {
         call_timeout_secs=30.0,
         expose_agent_tools=false,
         allowed_origins=None,
-        require_origin=true
+        require_origin=true,
+        require_auth=true,
+        auth_token=None
     ))]
     fn serve_mcp_http<'py>(
         &self,
@@ -594,6 +598,8 @@ impl PyRuntime {
         expose_agent_tools: bool,
         allowed_origins: Option<Vec<String>>,
         require_origin: bool,
+        require_auth: bool,
+        auth_token: Option<String>,
     ) -> PyResult<Bound<'py, PyAny>> {
         if transport != "streamable-http" {
             return Err(PyValueError::new_err(format!(
@@ -608,6 +614,8 @@ impl PyRuntime {
             endpoint_path: path.clone(),
             allowed_origins: allowed_origins.unwrap_or_default(),
             require_origin,
+            require_auth,
+            auth_token,
         };
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             let bound = server

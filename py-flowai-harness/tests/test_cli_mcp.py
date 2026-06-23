@@ -9,6 +9,8 @@ import pytest
 
 from flowai_harness import cli
 
+MCP_AUTH_TOKEN = "test-mcp-token"
+
 
 def test_mcp_python_help_exits_successfully(capsys):
     with pytest.raises(SystemExit) as exc:
@@ -97,7 +99,14 @@ def test_mcp_python_stdio_subprocess_lists_and_calls_custom_tool():
 
 
 def test_mcp_python_streamable_http_subprocess_lists_and_calls_custom_tool():
-    proc = _start_python_mcp("--transport", "streamable-http", "--port", "0")
+    proc = _start_python_mcp(
+        "--transport",
+        "streamable-http",
+        "--port",
+        "0",
+        "--auth-token",
+        MCP_AUTH_TOKEN,
+    )
     try:
         endpoint = _read_endpoint(proc)
         initialize = _post_mcp(
@@ -132,6 +141,29 @@ def test_mcp_python_streamable_http_subprocess_lists_and_calls_custom_tool():
         )
         content = json.loads(call["result"]["content"][0]["text"])
         assert content["message"] == "hello"
+    finally:
+        _terminate(proc)
+
+
+def test_mcp_python_streamable_http_subprocess_can_disable_authentication():
+    proc = _start_python_mcp("--transport", "streamable-http", "--port", "0", "--no-auth")
+    try:
+        endpoint = _read_endpoint(proc)
+        initialize = _post_mcp(
+            endpoint,
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2025-06-18",
+                    "capabilities": {},
+                    "clientInfo": {"name": "pytest", "version": "0.1.0"},
+                },
+            },
+            auth_token=None,
+        )
+        assert initialize["id"] == 1
     finally:
         _terminate(proc)
 
@@ -196,16 +228,20 @@ def _read_endpoint(proc):
     raise AssertionError(_process_output(proc, "timed out waiting for MCP endpoint"))
 
 
-def _post_mcp(endpoint, payload):
+def _post_mcp(endpoint, payload, *, auth_token=MCP_AUTH_TOKEN):
     from urllib import request
+
+    headers = {
+        "Accept": "application/json, text/event-stream",
+        "Content-Type": "application/json",
+    }
+    if auth_token is not None:
+        headers["X-FlowAI-MCP-Token"] = auth_token
 
     req = request.Request(
         endpoint,
         data=json.dumps(payload).encode(),
-        headers={
-            "Accept": "application/json, text/event-stream",
-            "Content-Type": "application/json",
-        },
+        headers=headers,
         method="POST",
     )
     with request.urlopen(req, timeout=10) as response:

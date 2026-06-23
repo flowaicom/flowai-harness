@@ -417,7 +417,7 @@ def test_define_runtime_derives_agent_toolkits_and_coordinator_approval(
     assert runtime.tool_bindings == (search_products,)
     assert runtime.approval_policies == ApprovalPolicies(plans="always", tools="never")
     assert runtime.approval_overrides == ApprovalOverrides(
-        tools={"scenario_executor": {"search_products": "never"}}
+        tools={"scenario_executor": {"search_products": "always"}}
     )
 
     dumped = runtime.model_dump(by_alias=True, mode="json")
@@ -442,7 +442,7 @@ def test_define_runtime_derives_agent_toolkits_and_coordinator_approval(
         "agents": {},
         "tools": {
             "scenario_executor": {
-                "search_products": {"kind": "never"},
+                "search_products": {"kind": "always"},
             }
         },
     }

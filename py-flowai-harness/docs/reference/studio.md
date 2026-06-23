@@ -25,6 +25,7 @@ Common options:
 | `--host 127.0.0.1` | Host to bind. |
 | `--port 4111` | Port for both Studio UI and API routes. |
 | `--no-studio` | Serve API routes only. |
+| `--no-api-auth` | Disable local Studio API authentication. Unsafe alpha escape hatch for trusted loopback sessions only. |
 
 For Python harness apps, use `dev` or `serve`.
 
@@ -61,10 +62,23 @@ Studio serves a dynamic config file and workspace-scoped API routes:
 | `/api/workspaces/{workspace_key}/evals/...` | Eval routes. |
 | `/api/workspaces/{workspace_key}/runs/...` | Persisted run activity, events, approvals, and traces. |
 
-For the complete generated route list, run the Studio server and open
-`http://127.0.0.1:4111/api/docs` or
-`http://127.0.0.1:4111/api/redoc`. The OpenAPI JSON is available at
-`http://127.0.0.1:4111/api/openapi.json`.
+Studio API authentication is enabled by default. The browser UI loads a
+per-process token from `/__flowai_config.js` and sends it as
+`X-FlowAI-Studio-Token` on API requests. Direct API clients must send either
+that header or `Authorization: Bearer <token>`.
+
+If you need unauthenticated local API access during alpha development, start
+Studio with `--no-api-auth`. This disables the local API token check for that
+server process and should only be used on trusted loopback development
+sessions.
+
+For the complete generated route list, fetch `/api/openapi.json` with
+`X-FlowAI-Studio-Token` or `Authorization: Bearer <token>`.
+
+When API authentication is enabled, direct browser access to `/api/docs` and
+`/api/redoc` returns `401` because the browser does not add the Studio token to
+those top-level navigation requests. To use the browser Swagger or Redoc pages
+during alpha development, run a trusted local session with `--no-api-auth`.
 
 `/__flowai_config.js` is generated on each request. The server does not mutate
 installed Studio files.

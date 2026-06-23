@@ -38,6 +38,11 @@ use agent_fw_catalog::knowledge::{DocumentItem, ExtractionStatus};
 
 use crate::knowledge_extraction::KnowledgeExtractionService;
 
+const MAX_SCAN_DEPTH: usize = 16;
+const MAX_SCAN_FILES: usize = 1_024;
+const MAX_SCAN_FILE_BYTES: u64 = 1_048_576;
+const MAX_SCAN_TOTAL_BYTES: u64 = 16 * 1_048_576;
+
 // =============================================================================
 // Types
 // =============================================================================
@@ -111,6 +116,9 @@ pub enum KnowledgeIngestionError {
 
     #[error("Corrupt hash index: {0}")]
     CorruptIndex(String),
+
+    #[error("Knowledge source limit exceeded: {0}")]
+    LimitExceeded(String),
 
     #[error("Operation cancelled")]
     Cancelled,
@@ -583,55 +591,98 @@ pub fn scan_local_directory(
     path: &std::path::Path,
     extensions: &[String],
 ) -> Result<Vec<DiscoveredDocument>, KnowledgeIngestionError> {
-    let mut results = Vec::new();
-    scan_recursive(path, extensions, &mut results)?;
-    Ok(results)
+    let root = path.canonicalize()?;
+    let mut state = ScanState::default();
+    scan_recursive(&root, &root, extensions, 0, &mut state)?;
+    Ok(state.results)
+}
+
+#[derive(Default)]
+struct ScanState {
+    results: Vec<DiscoveredDocument>,
+    matched_files: usize,
+    total_bytes: u64,
 }
 
 fn scan_recursive(
+    root: &std::path::Path,
     dir: &std::path::Path,
     extensions: &[String],
-    results: &mut Vec<DiscoveredDocument>,
+    depth: usize,
+    state: &mut ScanState,
 ) -> Result<(), KnowledgeIngestionError> {
+    if depth > MAX_SCAN_DEPTH {
+        return Err(KnowledgeIngestionError::LimitExceeded(format!(
+            "directory depth exceeded {MAX_SCAN_DEPTH}: {}",
+            dir.display()
+        )));
+    }
     let mut entries = std::fs::read_dir(dir)?.collect::<Result<Vec<_>, _>>()?;
     entries.sort_by_key(|entry| entry.path());
 
     for entry in entries {
         let file_type = entry.file_type()?;
         let path = entry.path();
+        let canonical = path.canonicalize()?;
+        if !canonical.starts_with(root) {
+            return Err(KnowledgeIngestionError::LimitExceeded(format!(
+                "path escapes knowledge root: {}",
+                path.display()
+            )));
+        }
 
         if file_type.is_dir() {
-            scan_recursive(&path, extensions, results)?;
+            scan_recursive(root, &canonical, extensions, depth + 1, state)?;
         } else if file_type.is_file() {
             // Extension filter
             if !extensions.is_empty() {
-                let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("");
+                let ext = canonical.extension().and_then(|e| e.to_str()).unwrap_or("");
                 if !extensions.iter().any(|e| e == ext) {
                     continue;
                 }
             }
+            if state.matched_files >= MAX_SCAN_FILES {
+                return Err(KnowledgeIngestionError::LimitExceeded(format!(
+                    "file count exceeded {MAX_SCAN_FILES}"
+                )));
+            }
+            state.matched_files += 1;
 
-            let content = match std::fs::read_to_string(&path) {
+            let metadata = std::fs::metadata(&canonical)?;
+            if metadata.len() > MAX_SCAN_FILE_BYTES {
+                return Err(KnowledgeIngestionError::LimitExceeded(format!(
+                    "file exceeds {MAX_SCAN_FILE_BYTES} bytes: {}",
+                    canonical.display()
+                )));
+            }
+            let next_total = state.total_bytes.saturating_add(metadata.len());
+            if next_total > MAX_SCAN_TOTAL_BYTES {
+                return Err(KnowledgeIngestionError::LimitExceeded(format!(
+                    "total file bytes exceeded {MAX_SCAN_TOTAL_BYTES}"
+                )));
+            }
+            state.total_bytes = next_total;
+
+            let content = match std::fs::read_to_string(&canonical) {
                 Ok(c) => c,
                 Err(e) => {
-                    debug!(path = %path.display(), error = %e, "Skipping unreadable file");
+                    debug!(path = %canonical.display(), error = %e, "Skipping unreadable file");
                     continue;
                 }
             };
 
-            let metadata = std::fs::metadata(&path)?;
             let mut hasher = Sha256::new();
             hasher.update(content.as_bytes());
             let hash = hex::encode(hasher.finalize());
 
-            let name = path
+            let name = canonical
                 .file_name()
                 .and_then(|n| n.to_str())
                 .unwrap_or("unknown")
                 .to_string();
 
-            results.push(DiscoveredDocument {
-                path: path.clone(),
+            state.results.push(DiscoveredDocument {
+                path: canonical,
                 name,
                 content_hash: hash,
                 size_bytes: metadata.len(),
@@ -728,6 +779,58 @@ mod tests {
             docs[0].content_hash,
             "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9"
         );
+    }
+
+    #[test]
+    fn scan_rejects_too_many_files() {
+        let dir = TempDir::new().unwrap();
+        for index in 0..=MAX_SCAN_FILES {
+            std::fs::write(dir.path().join(format!("doc-{index}.txt")), "x").unwrap();
+        }
+
+        let error = scan_local_directory(dir.path(), &[]).unwrap_err();
+
+        assert!(matches!(error, KnowledgeIngestionError::LimitExceeded(_)));
+    }
+
+    #[test]
+    fn scan_rejects_too_many_unreadable_matching_files() {
+        let dir = TempDir::new().unwrap();
+        for index in 0..=MAX_SCAN_FILES {
+            std::fs::write(dir.path().join(format!("doc-{index}.txt")), [0xFF, 0xFE]).unwrap();
+        }
+
+        let error = scan_local_directory(dir.path(), &["txt".into()]).unwrap_err();
+
+        assert!(matches!(error, KnowledgeIngestionError::LimitExceeded(_)));
+    }
+
+    #[test]
+    fn scan_rejects_oversized_files() {
+        let dir = TempDir::new().unwrap();
+        std::fs::write(
+            dir.path().join("large.txt"),
+            vec![b'x'; MAX_SCAN_FILE_BYTES as usize + 1],
+        )
+        .unwrap();
+
+        let error = scan_local_directory(dir.path(), &[]).unwrap_err();
+
+        assert!(matches!(error, KnowledgeIngestionError::LimitExceeded(_)));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn scan_rejects_symlink_escape() {
+        let root = TempDir::new().unwrap();
+        let outside = TempDir::new().unwrap();
+        let target = outside.path().join("secret.txt");
+        std::fs::write(&target, "secret").unwrap();
+        std::os::unix::fs::symlink(&target, root.path().join("escape.txt")).unwrap();
+
+        let error = scan_local_directory(root.path(), &[]).unwrap_err();
+
+        assert!(matches!(error, KnowledgeIngestionError::LimitExceeded(_)));
     }
 
     #[tokio::test]

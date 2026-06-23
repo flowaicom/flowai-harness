@@ -4,10 +4,15 @@ mod error;
 mod schema;
 mod transport;
 
-use std::{collections::BTreeSet, sync::Arc, time::Duration};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    sync::Arc,
+    time::Duration,
+};
 
 use agent_fw_agent::ToolDispatcher;
 use agent_fw_tool::ToolEnvironment;
+use jsonschema::{Draft, JSONSchema};
 use rmcp::{
     handler::server::tool::{ToolCallContext, ToolRoute, ToolRouter},
     model::{CallToolResult, Implementation, ServerCapabilities, ServerInfo, Tool},
@@ -17,6 +22,9 @@ use serde_json::Value;
 
 pub use error::McpError;
 pub use transport::McpBoundHttpServer;
+
+const TOOL_INPUT_SCHEMA_DRAFT: Draft = Draft::Draft202012;
+const MAX_MCP_TOOL_ARGUMENT_BYTES: usize = 64 * 1024;
 
 /// Metadata and execution limits for an MCP tool server.
 #[derive(Debug, Clone)]
@@ -53,6 +61,10 @@ pub struct McpHttpServerConfig {
     pub allowed_origins: Vec<String>,
     /// Whether configured origins should be enforced for requests that carry an Origin header.
     pub require_origin: bool,
+    /// Whether Streamable HTTP requests must include bearer/header authentication.
+    pub require_auth: bool,
+    /// Required bearer/header token for all Streamable HTTP requests when authentication is enabled.
+    pub auth_token: Option<String>,
 }
 
 impl Default for McpHttpServerConfig {
@@ -64,6 +76,8 @@ impl Default for McpHttpServerConfig {
             endpoint_path: "/mcp".to_string(),
             allowed_origins: Vec::new(),
             require_origin: true,
+            require_auth: true,
+            auth_token: None,
         }
     }
 }
@@ -75,6 +89,7 @@ pub struct McpToolServer {
     env: ToolEnvironment,
     tool_router: ToolRouter<Self>,
     tool_names: Arc<BTreeSet<String>>,
+    tool_schemas: Arc<BTreeMap<String, Value>>,
     config: McpServerConfig,
 }
 
@@ -99,6 +114,10 @@ impl McpToolServer {
         config: McpServerConfig,
     ) -> Result<Self, McpError> {
         let definitions = dispatcher.tool_definitions();
+        let tool_schemas = definitions
+            .iter()
+            .map(|definition| (definition.name.clone(), definition.input_schema.clone()))
+            .collect::<BTreeMap<_, _>>();
         let tools = definitions
             .into_iter()
             .map(schema::definition_to_mcp_tool)
@@ -114,6 +133,7 @@ impl McpToolServer {
             env,
             tool_router,
             tool_names: Arc::new(tool_names),
+            tool_schemas: Arc::new(tool_schemas),
             config,
         })
     }
@@ -141,6 +161,7 @@ impl McpToolServer {
                 None,
             ));
         }
+        self.validate_tool_arguments(tool_name, &arguments)?;
 
         let tool_use_id = uuid::Uuid::new_v4().to_string();
         let result = tokio::time::timeout(
@@ -156,6 +177,46 @@ impl McpToolServer {
     /// Access the framework tool environment captured by this server.
     pub fn environment(&self) -> &ToolEnvironment {
         &self.env
+    }
+
+    fn validate_tool_arguments(&self, tool_name: &str, arguments: &Value) -> Result<(), ErrorData> {
+        let encoded = serde_json::to_vec(arguments).map_err(|error| {
+            ErrorData::invalid_params(
+                format!("MCP tool arguments for `{tool_name}` could not be encoded: {error}"),
+                None,
+            )
+        })?;
+        if encoded.len() > MAX_MCP_TOOL_ARGUMENT_BYTES {
+            return Err(ErrorData::invalid_params(
+                format!(
+                    "MCP tool arguments for `{tool_name}` exceed maximum size of {MAX_MCP_TOOL_ARGUMENT_BYTES} bytes"
+                ),
+                None,
+            ));
+        }
+        let schema = self.tool_schemas.get(tool_name).ok_or_else(|| {
+            ErrorData::invalid_params(format!("Unknown tool: {tool_name}"), None)
+        })?;
+        let compiled = JSONSchema::options()
+            .with_draft(TOOL_INPUT_SCHEMA_DRAFT)
+            .compile(schema)
+            .map_err(|error| {
+                ErrorData::invalid_params(
+                    format!("MCP tool `{tool_name}` input schema is invalid: {error}"),
+                    None,
+                )
+            })?;
+        if let Err(errors) = compiled.validate(arguments) {
+            let messages = errors
+                .map(|error| error.to_string())
+                .collect::<Vec<_>>()
+                .join("; ");
+            return Err(ErrorData::invalid_params(
+                format!("MCP tool arguments for `{tool_name}` do not match schema: {messages}"),
+                None,
+            ));
+        }
+        Ok(())
     }
 }
 

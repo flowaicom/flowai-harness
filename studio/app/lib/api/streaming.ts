@@ -16,7 +16,7 @@ import { err, ok } from "~/lib/domain/result";
 import type { StreamPart } from "~/lib/domain/stream-part";
 import { parseSSELine } from "~/lib/domain/stream-part";
 import type { ApiError } from "./client";
-import { getApiConfig } from "./client";
+import { getApiConfig, getApiRequestHeaders } from "./client";
 
 // ============================================================================
 // Types
@@ -206,10 +206,7 @@ export async function startChatStream(
   try {
     const response = await fetch(url, {
       method: "POST",
-      headers: {
-        ...config.headers,
-        Accept: "text/event-stream",
-      },
+      headers: getApiRequestHeaders({ Accept: "text/event-stream" }),
       body: JSON.stringify(request),
       signal: controller.signal,
     });

@@ -128,6 +128,7 @@ async fn mcp_toolkit_streamable_http_subprocess_lists_catalog_tools() {
             "streamable-http",
             "--port",
             "0",
+            "--no-auth",
         ])
         .stdin(Stdio::null())
         .stdout(Stdio::piped())

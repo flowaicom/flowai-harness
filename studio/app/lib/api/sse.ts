@@ -13,7 +13,7 @@
 import type { Result } from "~/lib/domain/result";
 import { err, ok } from "~/lib/domain/result";
 import type { ApiError } from "./client";
-import { getApiConfig } from "./client";
+import { getApiConfig, getApiRequestHeaders } from "./client";
 
 // =============================================================================
 // Handler Interface
@@ -171,11 +171,10 @@ export async function startJsonSSEStream<E>(
   try {
     const response = await fetch(url, {
       method,
-      headers: {
-        ...apiConfig.headers,
+      headers: getApiRequestHeaders({
         Accept: "text/event-stream",
         ...(lastEventId ? { "Last-Event-ID": lastEventId } : {}),
-      },
+      }),
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
       signal: controller.signal,
     });

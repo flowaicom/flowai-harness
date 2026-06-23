@@ -11,8 +11,9 @@ from flowai_harness import (
     define_tenant,
     define_workspace_runtime,
 )
-from flowai_harness.studio import StudioStore, create_studio_app
+from flowai_harness.studio import StudioStore
 from flowai_harness.studio.sse import project_runtime_event
+from tests.studio_test_client import create_studio_test_client
 
 
 class ApprovalRuntime:
@@ -57,7 +58,7 @@ def _client(store: StudioStore, runtime=None) -> TestClient:
     spec = define_runtime(tenant=define_tenant("acme", "v1"), agents=[coordinator, planner])
     binding = define_workspace_runtime(runtime_spec=spec, runtime=runtime or ApprovalRuntime())
     app = define_app(name="demo", workspaces={"default": binding}, default_workspace="default")
-    return TestClient(create_studio_app(app, store=store))
+    return create_studio_test_client(app, store=store)
 
 
 def _seed_chat(client: TestClient, thread_id="thread-1", message="Search"):

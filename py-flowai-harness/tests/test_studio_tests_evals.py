@@ -19,7 +19,8 @@ from flowai_harness import (
     define_tool,
     define_workspace_runtime,
 )
-from flowai_harness.studio import StudioStore, create_studio_app
+from flowai_harness.studio import StudioStore
+from tests.studio_test_client import create_studio_test_client
 
 
 def _spec():
@@ -92,7 +93,7 @@ def _client(
     app = define_app(
         name="demo", workspaces=bindings, default_workspace=workspaces[0]
     )
-    return TestClient(create_studio_app(app, store=store))
+    return create_studio_test_client(app, store=store)
 
 
 def _sse_events(text: str) -> list[dict]:

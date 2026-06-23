@@ -104,7 +104,6 @@ def test_define_tool_accepts_direct_and_decorator_forms():
         name="search_products",
         description="Search products",
         input_schema={"query": str, "limit": int},
-        approval="never",
     )
 
     assert isinstance(direct, ToolSpec)
@@ -119,7 +118,7 @@ def test_define_tool_accepts_direct_and_decorator_forms():
             },
             "required": ["query", "limit"],
         },
-        "approval": {"kind": "never"},
+        "approval": {"kind": "always"},
         "outputSchema": None,
         "bindingId": None,
     }

@@ -73,6 +73,8 @@ async def serve_http(
     expose_agent_tools: bool = False,
     allowed_origins: list[str] | None = None,
     require_origin: bool = True,
+    require_auth: bool = True,
+    auth_token: str | None = None,
 ) -> None:
     """Serve one runtime agent's tools over MCP Streamable HTTP.
 
@@ -93,11 +95,18 @@ async def serve_http(
         allowed_origins: Additional `Origin` header values to accept.
         require_origin: Validate browser `Origin` headers. Disable only for
             non-browser clients on trusted networks.
+        require_auth: Require bearer/header authentication. Disable only for
+            trusted local alpha development sessions.
+        auth_token: Required bearer/header token for every Streamable HTTP
+            request when authentication is enabled.
 
     Raises:
         ValueError: If `transport` is not `"streamable-http"`.
         RuntimeError: If the server fails to bind or serving fails.
     """
+
+    if require_auth and (auth_token is None or auth_token.strip() == ""):
+        raise ValueError("Streamable HTTP requires a non-empty auth_token")
 
     await runtime.serve_mcp_http(
         agent,
@@ -110,6 +119,8 @@ async def serve_http(
         expose_agent_tools=expose_agent_tools,
         allowed_origins=allowed_origins,
         require_origin=require_origin,
+        require_auth=require_auth,
+        auth_token=auth_token,
     )
 
 
