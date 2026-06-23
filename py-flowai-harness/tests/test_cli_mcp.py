@@ -9,6 +9,8 @@ import pytest
 
 from flowai_harness import cli
 
+MCP_AUTH_TOKEN = "test-mcp-token"
+
 
 def test_mcp_python_help_exits_successfully(capsys):
     with pytest.raises(SystemExit) as exc:
@@ -97,7 +99,14 @@ def test_mcp_python_stdio_subprocess_lists_and_calls_custom_tool():
 
 
 def test_mcp_python_streamable_http_subprocess_lists_and_calls_custom_tool():
-    proc = _start_python_mcp("--transport", "streamable-http", "--port", "0")
+    proc = _start_python_mcp(
+        "--transport",
+        "streamable-http",
+        "--port",
+        "0",
+        "--auth-token",
+        MCP_AUTH_TOKEN,
+    )
     try:
         endpoint = _read_endpoint(proc)
         initialize = _post_mcp(
@@ -205,6 +214,7 @@ def _post_mcp(endpoint, payload):
         headers={
             "Accept": "application/json, text/event-stream",
             "Content-Type": "application/json",
+            "X-FlowAI-MCP-Token": MCP_AUTH_TOKEN,
         },
         method="POST",
     )
